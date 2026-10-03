@@ -1,5 +1,11 @@
 export type Option = { value: string; label: string; hint?: string }
-export type FieldType = 'text' | 'textarea' | 'number' | 'money' | 'date' | 'datetime' | 'select' | 'checkbox' | 'email' | 'phone' | 'relation' | 'tags'
+export type FieldType = 'text' | 'textarea' | 'number' | 'money' | 'date' | 'datetime' | 'select' | 'checkbox' | 'email' | 'phone' | 'relation' | 'picker' | 'tags'
+
+/** Server-backed typeahead source for large tables (items, partners, lots…). Both members are React hooks. */
+export type PickerSource = {
+  useSearch: (term: string) => { options: Option[]; loading: boolean }
+  useById: (id: string) => Option | undefined
+}
 export type FormValues = Record<string, string | boolean>
 
 export type EntityField = {
@@ -11,6 +17,8 @@ export type EntityField = {
   options?: Option[]
   /** Hook returning options (relation: another entity's rows). Called at render, must be stable per field. */
   useOptions?: () => Option[] | undefined
+  /** Typeahead source (type `picker`). */
+  picker?: PickerSource
   /** Allow an empty choice for selects / relations. */
   clearable?: boolean
   min?: number

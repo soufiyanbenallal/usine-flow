@@ -1,10 +1,59 @@
 'use client'
 
 import { Checkbox, DateField, NumberField, Select, TextField } from '@xco-agency/corex-ui'
-import { useId, type ReactNode } from 'react'
+import { useId, useState, type ReactNode } from 'react'
 import type { EntityField, FormValues } from './form-values'
 
 export * from './form-values'
+
+function PickerInput({ field, value, onChange, error, disabled }: { field: EntityField; value: string; onChange: (v: string) => void; error?: string; disabled?: boolean }) {
+  const source = field.picker!
+  const [term, setTerm] = useState('')
+  const [focused, setFocused] = useState(false)
+  const selected = source.useById(value)
+  const search = source.useSearch(term)
+  return (
+    <div className="relative">
+      <label className="flex flex-col gap-1 text-[13px]">
+        <span className="font-medium">
+          {field.label}
+          {field.required && ' *'}
+        </span>
+        <input
+          value={focused ? term : (selected ? (selected.hint ? `${selected.label} — ${selected.hint}` : selected.label) : '')}
+          placeholder={field.placeholder ?? 'Rechercher…'}
+          disabled={disabled}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setTimeout(() => setFocused(false), 150)}
+          onChange={(e) => setTerm(e.target.value)}
+          className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+        />
+      </label>
+      {focused && (
+        <ul className="absolute z-50 mt-1 max-h-56 w-full overflow-auto rounded-lg border bg-popover p-1 text-[13px] shadow-md">
+          {!field.required && value && (
+            <li>
+              <button type="button" className="w-full rounded px-2 py-1.5 text-left text-muted-foreground hover:bg-secondary" onMouseDown={() => { onChange(''); setTerm('') }}>
+                — Aucun
+              </button>
+            </li>
+          )}
+          {search.loading && <li className="px-2 py-1.5 text-muted-foreground">Recherche…</li>}
+          {!search.loading && search.options.length === 0 && <li className="px-2 py-1.5 text-muted-foreground">Aucun résultat</li>}
+          {search.options.map((o) => (
+            <li key={o.value}>
+              <button type="button" className="w-full rounded px-2 py-1.5 text-left hover:bg-secondary" onMouseDown={() => { onChange(o.value); setTerm('') }}>
+                <span className="font-medium">{o.label}</span>
+                {o.hint && <span className="ml-2 text-muted-foreground">{o.hint}</span>}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {error && <span className="text-xs text-red-700">{error}</span>}
+    </div>
+  )
+}
 
 function RelationInput({ field, value, onChange, error, disabled }: { field: EntityField; value: string; onChange: (v: string) => void; error?: string; disabled?: boolean }) {
   const options = field.useOptions?.() ?? []
@@ -76,6 +125,8 @@ export function FieldInput({ field, values, onChange, errors, disabled }: { fiel
           required={field.required}
         />
       )
+    case 'picker':
+      return <PickerInput field={field} value={str} onChange={(v) => onChange(field.key, v)} error={error} disabled={disabled} />
     case 'relation':
       return <RelationInput field={field} value={str} onChange={(v) => onChange(field.key, v)} error={error} disabled={disabled} />
     case 'email':

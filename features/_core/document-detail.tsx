@@ -4,7 +4,7 @@ import { Banner, Button, Modal, TextField } from '@xco-agency/corex-ui'
 import type { LucideIcon } from 'lucide-react'
 import { ArrowLeft, FileDown, Pencil } from 'lucide-react'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useCallback, useRef, useState, type ReactNode } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import type { DataTableColumn } from '@/components/data-table'
@@ -35,6 +35,8 @@ export type DocAction<H> = {
   tone?: 'primary' | 'secondary' | 'critical'
   visible: (h: H) => boolean
   run: (h: H, reason?: string) => Promise<unknown>
+  /** Called with the RPC result; `go` navigates to an organization-relative path (e.g. the document just created). */
+  after?: (result: unknown, go: (path: string) => void) => void
   confirm?: string
   /** Prompts for a mandatory reason (reversals, cancellations). */
   reasonLabel?: string
@@ -67,6 +69,8 @@ export type DocumentConfig<H extends DocHeader, L extends { id: string }> = {
   top?: (h: H, lines: L[]) => ReactNode
   /** Document type used by the approval engine (`submit_document`). */
   approvalType?: string
+  /** Show HT / TVA / TTC totals (priced documents). */
+  totals?: boolean
 }
 
 function LinesTable<H extends DocHeader, L extends { id: string }>({ config, header }: { config: DocumentConfig<H, L>; header: H }) {
@@ -98,6 +102,7 @@ export function DocumentDetail<H extends DocHeader, L extends { id: string }>({ 
   const t = useT()
   const { id } = useParams<{ id: string }>()
   const href = useOrgPath()
+  const router = useRouter()
   const org = useOrganization()
   const client = useQueryClient()
   const { can } = usePermissions()
@@ -127,8 +132,9 @@ export function DocumentDetail<H extends DocHeader, L extends { id: string }>({ 
     setActionError(null)
     setPending(action.key)
     try {
-      await action.run(doc, why)
+      const result = await action.run(doc, why)
       await client.invalidateQueries({ queryKey: ['org', org.id] })
+      action.after?.(result, (path) => router.push(href(path)))
     } catch (e) {
       setActionError((e as Error).message)
     } finally {
@@ -171,7 +177,7 @@ export function DocumentDetail<H extends DocHeader, L extends { id: string }>({ 
       ...config.header.fields.map((f) => ({ label: f.label, value: texts.current[f.key] ?? '' })).filter((m) => m.value && m.value !== '—'),
     ]
     const cols = lineColumns
-    const hasTotals = doc.total_amount !== undefined
+    const hasTotals = !!config.totals && doc.total_amount !== undefined
     const bytes = await buildDocumentPdf({
       title: config.singular,
       number: doc.number,
@@ -282,7 +288,7 @@ export function DocumentDetail<H extends DocHeader, L extends { id: string }>({ 
 
           {config.lines && <LinesTable config={config} header={doc} />}
 
-          {doc.total_amount !== undefined && config.lines && (
+          {config.totals && doc.total_amount !== undefined && config.lines && (
             <div className="ml-auto w-full max-w-xs space-y-1 rounded-xl border bg-card p-4 text-[13px]">
               <div className="flex justify-between"><span>Total HT</span><span className="tabular-nums">{formatMoney(doc.subtotal ?? 0)}</span></div>
               <div className="flex justify-between"><span>TVA</span><span className="tabular-nums">{formatMoney(doc.tax_amount ?? 0)}</span></div>

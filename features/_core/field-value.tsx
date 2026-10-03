@@ -8,6 +8,7 @@ import { statusMeta } from './status'
 /** Resolves the display text of a field value (relation → option label, select → label, money, dates). */
 function useFieldText(field: EntityField, raw: unknown): string {
   const options = field.useOptions?.() ?? field.options
+  const picked = field.picker?.useById(String(raw ?? ''))
   if (raw === null || raw === undefined || raw === '') return '—'
   switch (field.type) {
     case 'checkbox':
@@ -22,6 +23,8 @@ function useFieldText(field: EntityField, raw: unknown): string {
       return formatDateTime(String(raw))
     case 'tags':
       return Array.isArray(raw) ? raw.join(', ') : String(raw)
+    case 'picker':
+      return picked ? (picked.hint ? `${picked.label} — ${picked.hint}` : picked.label) : String(raw)
     case 'select':
     case 'relation':
       return options?.find((o) => o.value === String(raw))?.label ?? statusMeta(String(raw)).label

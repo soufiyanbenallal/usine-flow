@@ -34,7 +34,9 @@ export const rpcAction = <H extends DocHeader>(opts: {
   permission?: Permission
   arg?: string
   extra?: (h: H) => Record<string, unknown>
+  after?: (result: unknown, go: (path: string) => void) => void
 }): DocAction<H> => ({
+  after: opts.after,
   key: opts.key, label: opts.label, tone: opts.tone, confirm: opts.confirm, permission: opts.permission, visible: opts.visible,
   run: (h) => rpc(opts.fn, { [opts.arg ?? 'p_id']: h.id, ...(opts.extra?.(h) ?? {}) }),
 })

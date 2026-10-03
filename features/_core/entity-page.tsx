@@ -56,6 +56,10 @@ export type EntityPageProps<Row extends { id: string }> = {
   /** Adjust the form state when opening a row (derived fields that are not columns). */
   toValues?: (row: Row, base: FormValues) => FormValues
   loadingExtra?: boolean
+  /** Render without the page frame (header + scroll area), e.g. as a section of another page. */
+  embedded?: boolean
+  /** Content rendered after the table (inside the frame). */
+  below?: ReactNode
 }
 
 /**
@@ -144,13 +148,7 @@ export function EntityPage<Row extends { id: string }>(props: EntityPageProps<Ro
     ...(row && can && canRemove ? [{ content: confirmDelete ? t('Confirmer la suppression') : t('Supprimer'), onAction: doDelete, destructive: true, disabled: busy }] : []),
   ]
 
-  return (
-    <PageShell
-      title={title}
-      icon={icon}
-      description={description}
-      error={list.error?.message}
-      actions={
+  const headerActions = (
         <>
           {actions}
           {rows.length > 0 && (
@@ -177,8 +175,10 @@ export function EntityPage<Row extends { id: string }>(props: EntityPageProps<Ro
             </Button>
           )}
         </>
-      }
-    >
+  )
+
+  const body = (
+    <>
       {intro}
       <DataTable<Row>
         title={title}
@@ -209,6 +209,25 @@ export function EntityPage<Row extends { id: string }>(props: EntityPageProps<Ro
           {modalExtra?.(row)}
         </div>
       </Modal>
+      {props.below}
+    </>
+  )
+
+  if (props.embedded) {
+    return (
+      <section className="space-y-3">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold">{t(title)}</h2>
+          <div className="flex items-center gap-2">{headerActions}</div>
+        </div>
+        {list.error && <Banner tone="critical">{list.error.message}</Banner>}
+        {body}
+      </section>
+    )
+  }
+  return (
+    <PageShell title={title} icon={icon} description={description} error={list.error?.message} actions={headerActions}>
+      {body}
     </PageShell>
   )
 }
