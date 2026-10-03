@@ -1,0 +1,179 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "@fontsource-variable/inter";
+@import "shadcn/tailwind.css";
+
+/*
+ * Buildo design tokens.
+ * The admin follows a Shopify-admin look: near-black rail + inset white canvas.
+ * The sidebar tokens are dark in BOTH themes; only the canvas flips.
+ */
+:root {
+  --radius: 0.875rem;
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --brand: #f59e0b;
+  --brand-foreground: #1a1a1a;
+  --success-bg: #affebf;
+  --success-fg: #014b40;
+  --warning-bg: #ffd79d;
+  --warning-fg: #5e4200;
+  --critical-bg: #fed1d7;
+  --critical-fg: #8e0b21;
+  --info-bg: #a4e8f2;
+  --info-fg: #00414c;
+  --neutral-bg: #e3e3e3;
+  --neutral-fg: #303030;
+  --sidebar: oklch(0.145 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(26.862% 0.00003 271.152 / 0.394);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+}
+
+@theme inline {
+  --font-sans: var(--font-sans);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --font-heading: var(--font-sans);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    -webkit-font-smoothing: antialiased;
+    @apply font-sans;
+  }
+  body {
+    @apply font-sans bg-background text-foreground;
+  }
+}
+
+@utility soft-inset {
+  @apply relative cursor-pointer flex items-center gap-2 shadow-[inset_0_1px_1px_rgba(255,255,255,0.11),inset_0_-1px_1px_rgba(0,0,0,0.48),inset_0_0_0_1px_rgba(0,0,0,0.1),0_8px_24px_rgba(0,0,0,0.3)] h-7.5 bg-radial from-[#25252590] from-60% to-[#252525] active:scale-[99%];
+}
+@utility soft-inset-border {
+  @apply after:border-[0.5px] after:border-white/5 after:shadow-[inset_0_2px_5px_rgba(255,255,255,0.025),inset_0_-7px_14px_rgba(0,0,0,0.08)] after:absolute after:inset-0 after:rounded-md after:pointer-events-none;
+}
+
+/* Status pills — Polaris-style palette (Active = green). */
+@layer components {
+  .pill {
+    @apply inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium;
+  }
+  .pill-success {
+    background: #affebf;
+    color: #014b40;
+  }
+  .pill-warning {
+    background: #ffd79d;
+    color: #5e4200;
+  }
+  .pill-critical {
+    background: #fed1d7;
+    color: #8e0b21;
+  }
+  .pill-info {
+    background: #a4e8f2;
+    color: #00414c;
+  }
+  .pill-neutral {
+    background: #e3e3e3;
+    color: #303030;
+  }
+}
+
+/* Printable documents (bon de commande, fiche chantier): only the sheet is printed. */
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+  body * {
+    visibility: hidden;
+  }
+  .print-sheet,
+  .print-sheet * {
+    visibility: visible;
+  }
+  .print-sheet {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    margin: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+  .print-sheet thead {
+    display: table-header-group;
+  }
+  .print-sheet tr {
+    break-inside: avoid;
+  }
+}
+
