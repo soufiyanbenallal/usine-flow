@@ -1,4 +1,4 @@
-import { Bell, Building2, CreditCard, Globe, Percent, ShieldCheck, SlidersHorizontal, Users, type LucideIcon } from 'lucide-react'
+import { Bell, Boxes, Building2, CreditCard, Gauge, Globe, Hash, KeyRound, ListChecks, MapPin, Percent, Plug, ShieldCheck, SlidersHorizontal, Users, type LucideIcon } from 'lucide-react'
 
 export type SettingsNavItem = { path: string; label: string; icon: LucideIcon; keywords?: string }
 export type SettingsNavGroup = { label?: string; items: SettingsNavItem[] }
@@ -11,12 +11,17 @@ export const settingsNav: SettingsNavGroup[] = [
     items: [
       { path: SETTINGS_ROOT, label: 'Entreprise', icon: Building2, keywords: 'ice rc patente cnss adresse url slug' },
       { path: `${SETTINGS_ROOT}/utilisateurs`, label: 'Utilisateurs', icon: Users, keywords: 'membres invitations rôles équipe' },
+      { path: `${SETTINGS_ROOT}/sites`, label: 'Sites', icon: MapPin, keywords: 'usine atelier entrepôt bureau' },
+      { path: `${SETTINGS_ROOT}/roles`, label: 'Rôles et permissions', icon: KeyRound, keywords: 'droits accès matrice' },
     ],
   },
   {
     label: 'Espace de travail',
     items: [
       { path: `${SETTINGS_ROOT}/preferences`, label: 'Préférences', icon: SlidersHorizontal, keywords: 'bon de commande préfixe retenue' },
+      { path: `${SETTINGS_ROOT}/modules`, label: 'Modules', icon: Boxes, keywords: 'activer mode usine atelier entrepôt fonctionnalités' },
+      { path: `${SETTINGS_ROOT}/numerotation`, label: 'Numérotation', icon: Hash, keywords: 'préfixe séquence documents' },
+      { path: `${SETTINGS_ROOT}/approbations`, label: 'Approbations', icon: ListChecks, keywords: 'workflow validation seuil' },
       { path: `${SETTINGS_ROOT}/taxes`, label: 'Taxes et TVA', icon: Percent, keywords: 'tva taux' },
       { path: `${SETTINGS_ROOT}/notifications`, label: 'Notifications', icon: Bell, keywords: 'alertes stock retard' },
       { path: `${SETTINGS_ROOT}/region`, label: 'Langue et région', icon: Globe, keywords: 'devise mad fuseau' },
@@ -25,6 +30,8 @@ export const settingsNav: SettingsNavGroup[] = [
   {
     label: 'Compte',
     items: [
+      { path: `${SETTINGS_ROOT}/integrations`, label: 'Intégrations', icon: Plug, keywords: 'webhook api clé erp' },
+      { path: `${SETTINGS_ROOT}/usage`, label: 'Utilisation et quotas', icon: Gauge, keywords: 'plan limites consommation' },
       { path: `${SETTINGS_ROOT}/facturation`, label: 'Plan et facturation', icon: CreditCard, keywords: 'abonnement factures paiement' },
       { path: `${SETTINGS_ROOT}/securite`, label: 'Sécurité', icon: ShieldCheck, keywords: 'mot de passe session' },
     ],
