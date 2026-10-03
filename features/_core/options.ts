@@ -10,7 +10,7 @@ import type { Option } from './form-values'
 
 export type OptionTable =
   | 'warehouses' | 'price_lists' | 'work_centers' | 'cost_centers' | 'departments' | 'teams' | 'shifts' | 'skills' | 'sites' | 'routings'
-  | 'boms' | 'inspection_plans' | 'assets' | 'employees' | 'reason_codes' | 'facilities' | 'warehouse_zones'
+  | 'boms' | 'inspection_plans' | 'assets' | 'employees' | 'reason_codes' | 'facilities' | 'warehouse_zones' | 'production_orders'
 
 /** Generic `{ id, label }` options for small reference tables (warehouses, price lists, zones…). */
 export function useListOptions(table: OptionTable, labelColumn = 'name', hintColumn = 'code'): Option[] {
