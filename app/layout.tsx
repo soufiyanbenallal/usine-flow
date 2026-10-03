@@ -1,13 +1,17 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { cn } from "@/lib/utils";
 
+export const viewport: Viewport = { themeColor: "#1a1a1a", width: "device-width", initialScale: 1 };
+
 export const metadata: Metadata = {
   title: "UsineFlow — Industrial Operations OS",
   description:
     "Système d’exploitation des opérations industrielles pour usines, ateliers et entrepôts au Maroc.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, title: "UsineFlow", statusBarStyle: "black-translucent" },
   icons: {
     icon: [
       { url: "/favicon.ico" },
@@ -28,7 +32,7 @@ export default function RootLayout({
 }) {
   return (
     <html
-      lang="fr"
+      lang="fr" suppressHydrationWarning
       className={cn(
         "h-full bg-sidebar antialiased",
         "font-sans",

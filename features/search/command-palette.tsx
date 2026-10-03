@@ -1,11 +1,15 @@
 "use client";
 
 import {
-  Bell,
   Boxes,
   ChevronDownIcon,
   ChevronUpIcon,
   Compass,
+  Factory,
+  ShoppingCart,
+  Truck,
+  Users,
+  Wrench,
   CornerDownLeft,
   CornerDownLeftIcon,
   CreditCard,
@@ -30,6 +34,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
@@ -71,6 +76,14 @@ export const KIND_LABELS: Record<
     plural: "Paramètres",
     icon: SettingsIcon,
   },
+  Articles: { singular: "Article", plural: "Articles", icon: Boxes },
+  Partenaires: { singular: "Partenaire", plural: "Partenaires", icon: Users },
+  Lots: { singular: "Lot", plural: "Lots", icon: Boxes },
+  "Commandes d’achat": { singular: "Commande d’achat", plural: "Commandes d’achat", icon: ShoppingCart },
+  "Commandes clients": { singular: "Commande client", plural: "Commandes clients", icon: Truck },
+  "Ordres de fabrication": { singular: "Ordre de fabrication", plural: "Ordres de fabrication", icon: Factory },
+  Équipements: { singular: "Équipement", plural: "Équipements", icon: Wrench },
+  Employés: { singular: "Employé", plural: "Employés", icon: Users },
 };
 
 /** Sleek, minimalist keycap badge matching modern Shopify Spotlight design */
@@ -164,16 +177,17 @@ function CommandPaletteModal({
   isOpen: boolean;
   onClose: () => void;
 }) {
-  const [mounted, setMounted] = useState(false);
-  const [rendered, setRendered] = useState(isOpen);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+  const [renderedOnce, setRenderedOnce] = useState(isOpen);
+  if (isOpen && !renderedOnce) setRenderedOnce(true);
+  const rendered = renderedOnce;
 
   useEffect(() => {
     if (isOpen) {
-      setRendered(true);
       const originalOverflow = document.body.style.overflow;
       document.body.style.overflow = "hidden";
       return () => {
@@ -206,7 +220,7 @@ function CommandPaletteModal({
         duration={200}
         reverse
         onExited={() => {
-          if (!isOpen) setRendered(false);
+          if (!isOpen) setRenderedOnce(false);
         }}
         className="relative z-10 w-full max-w-2xl"
       >
@@ -286,10 +300,12 @@ function CommandPaletteContent({ onClose }: { onClose: () => void }) {
       ?.scrollIntoView({ block: "nearest" });
   }, [active, displayedItems]);
 
-  // Reset selected index on filter/query changes
-  useEffect(() => {
+  // Reset the selected index when the filter or query changes (adjusted during render, not in an effect)
+  const [lastSearch, setLastSearch] = useState({ query, activeFilter });
+  if (lastSearch.query !== query || lastSearch.activeFilter !== activeFilter) {
+    setLastSearch({ query, activeFilter });
     setActive(0);
-  }, [query, activeFilter]);
+  }
 
   const go = (item: SearchItem | undefined) => {
     if (!item) return;

@@ -5,6 +5,8 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { AppSidebar } from "@/components/app-sidebar";
 import { AssistantPanel } from "@/components/assistant-panel";
+import { OfflineIndicator } from "@/features/offline/offline-indicator";
+import { RealtimeProvider } from "@/features/realtime/realtime-provider";
 import { CommandPaletteProvider } from "@/features/search/command-palette";
 import { SettingsPanel } from "@/features/settings/settings-panel";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -52,6 +54,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   return (
     <TooltipProvider>
+      <RealtimeProvider>
       <CommandPaletteProvider>
       <SidebarProvider
         open={sidebarOpen && !settingsMode}
@@ -63,6 +66,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <SettingsPanel open={settingsMode} pathname={pathname} />
         <SidebarInset className="min-w-0 overflow-hidden">
           <div className="relative flex min-h-0 flex-1 flex-col">
+            <div className="pointer-events-none fixed end-4 top-3 z-40"><div className="pointer-events-auto"><OfflineIndicator /></div></div>
             {children}
             <button
               type="button"
@@ -96,6 +100,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         </div>
       </SidebarProvider>
       </CommandPaletteProvider>
+      </RealtimeProvider>
     </TooltipProvider>
   );
 }

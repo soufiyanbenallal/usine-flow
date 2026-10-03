@@ -12,23 +12,17 @@ import {
   SlidersHorizontal,
   Users,
 } from 'lucide-react'
+import { mainNav } from '@/lib/nav'
 import type { SearchItem, SearchKind } from './index'
 import { searchItems } from './index'
 import { useOrganizationState } from '../organization/context'
 import { DATA_TABLE_CONFIGS, searchAllTables, searchSingleTable } from './search-api'
 
-/** Main application navigation entries with dedicated icons and rich search metadata */
-const navigationItems: SearchItem[] = [
-  {
-    id: 'nav:dashboard',
-    kind: 'Navigation',
-    label: 'Tableau de bord',
-    hint: "Vue d'ensemble des opérations industrielles, cadence et TRS",
-    keywords: 'accueil stats kpi métriques chiffres indicateurs synthèse production atelier usine',
-    icon: Home,
-    path: '',
-  },
-]
+/** Every page of the navigation registry (parents and children) is searchable. */
+const navigationItems: SearchItem[] = mainNav.flatMap((n) => [
+  { id: `nav:${n.path || 'home'}`, kind: 'Navigation' as const, label: n.title, hint: n.description, keywords: n.group, icon: n.icon, path: n.path },
+  ...(n.children ?? []).map((c) => ({ id: `nav:${c.path}`, kind: 'Navigation' as const, label: c.title, hint: n.title, keywords: n.group, icon: n.icon, path: c.path })),
+])
 
 /** Settings configuration pages with specific icons and search keywords */
 const settingsItems: SearchItem[] = [
@@ -135,28 +129,16 @@ export function useSearchIndex(query: string, activeFilter: SearchKind | null) {
 
   const requestIdRef = useRef(0)
 
-  useEffect(() => {
-    if (!orgId || activeFilter === 'Navigation' || activeFilter === 'Paramètres') {
-      setDbItems([])
-      setLoading(false)
-      setHasMore(false)
-      setOffset(0)
-      return
-    }
+  const remote = !!orgId && activeFilter !== 'Navigation' && activeFilter !== 'Paramètres' && (!!query.trim() || !!activeFilter)
 
-    if (!query.trim() && !activeFilter) {
-      setDbItems([])
-      setLoading(false)
-      setHasMore(false)
-      setOffset(0)
-      return
-    }
+  useEffect(() => {
+    if (!remote || !orgId) return
 
     const currentReq = ++requestIdRef.current
-    setLoading(true)
 
     const delay = query.trim() ? 200 : 0
     const timer = setTimeout(async () => {
+      setLoading(true)
       try {
         if (activeFilter && DATA_TABLE_CONFIGS[activeFilter]) {
           const result = await searchSingleTable(
@@ -193,7 +175,7 @@ export function useSearchIndex(query: string, activeFilter: SearchKind | null) {
     }, delay)
 
     return () => clearTimeout(timer)
-  }, [query, activeFilter, orgId])
+  }, [query, activeFilter, orgId, remote])
 
   const loadMore = useCallback(async () => {
     if (!hasMore || loading || loadingMore || !orgId) return
@@ -229,8 +211,8 @@ export function useSearchIndex(query: string, activeFilter: SearchKind | null) {
   }, [hasMore, loading, loadingMore, orgId, activeFilter, query, offset])
 
   const items = useMemo(() => {
-    return [...localMatches, ...dbItems]
-  }, [localMatches, dbItems])
+    return remote ? [...localMatches, ...dbItems] : localMatches
+  }, [localMatches, dbItems, remote])
 
   return {
     items,

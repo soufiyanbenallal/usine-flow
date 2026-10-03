@@ -24,7 +24,7 @@ import {
 } from './hooks'
 import {
   ABSENCE_KINDS, ABSENCE_STATUS, ATTENDANCE_STATUS, EMPLOYEE_STATUS, WEEK_DAYS,
-  type Absence, type Attendance, type Department, type Employee, type EmployeeCertification, type EmployeeSkill, type Shift, type ShiftAssignment, type Skill, type Team, type TimeLog,
+  type Absence, type Attendance, type Department, type Employee, type EmployeeCertification, type EmployeeSkill, type Shift, type Skill, type Team, type TimeLog,
 } from './types'
 
 const TONE = { active: 'success', on_leave: 'warning', inactive: 'neutral', present: 'success', late: 'warning', absent: 'critical', leave: 'info', holiday: 'neutral', requested: 'warning', approved: 'success', rejected: 'critical', cancelled: 'neutral' } as const
@@ -128,9 +128,10 @@ export function EmployeeDetailPage() {
   )
 }
 
+const TODAY = () => new Date().toISOString().slice(0, 10)
 function ExpiryPill({ date }: { date: string | null }) {
   if (!date) return <Pill tone="neutral">Sans expiration</Pill>
-  const days = Math.ceil((new Date(date).getTime() - Date.now()) / 86_400_000)
+  const days = Math.ceil((new Date(date).getTime() - new Date(TODAY()).getTime()) / 86_400_000)
   if (days < 0) return <Pill tone="critical">Expirée</Pill>
   if (days <= 30) return <Pill tone="warning">Dans {days} j</Pill>
   return <Pill tone="success">{formatDate(date)}</Pill>

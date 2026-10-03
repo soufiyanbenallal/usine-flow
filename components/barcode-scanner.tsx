@@ -49,7 +49,7 @@ export function BarcodeScanner({ onScan, autoStart = false }: { onScan: (code: s
   }, [emit])
 
   useEffect(() => {
-    if (autoStart) void start()
+    if (autoStart) queueMicrotask(() => void start())
     return () => stopRef.current?.()
   }, [autoStart, start])
 

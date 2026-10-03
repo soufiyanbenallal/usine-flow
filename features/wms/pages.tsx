@@ -31,12 +31,13 @@ import { DELIVERY_STAGES } from '../sales/types'
 import { salesApi } from '../sales/service'
 import { locationHooks, useLocationIndex, useLocationOptions, useWarehouseOptions, warehouseHooks } from '../warehouses/hooks'
 import {
-  packageHooks, packageLineHooks, pickLineHooks, pickListHooks, taskHooks, useCompleteTask, useConfirmPick, useCreateDeliveryFromPick, useCreatePickList, useCreateWave, useStartTask, usePickListIndex, waveHooks,
+  packageHooks, packageLineHooks, pickLineHooks, pickListHooks, taskHooks, useCompleteTask, useCreateDeliveryFromPick, useCreatePickList, useCreateWave, useStartTask, waveHooks,
 } from './hooks'
+import { useRunOrQueue } from '../offline/hooks'
 import { wmsApi, type ScanHit } from './service'
 import {
   PACKAGE_KINDS, PICK_STATUS, PRIORITIES, TASK_STATUS, TASK_TYPES,
-  type Package, type PackageLine, type PickList, type PickListLine, type PickWave, type WarehouseTask,
+  type Package, type PackageLine, type PickListLine, type PickWave, type WarehouseTask,
 } from './types'
 
 const typeLabel = (v: string) => TASK_TYPES.find((t) => t.value === v)?.label ?? v
@@ -229,20 +230,31 @@ export function PickListsPage() {
 function PickLineRow({ line, editable }: { line: PickListLine; editable: boolean }) {
   const items = useItemIndex()
   const locations = useLocationIndex()
-  const confirm = useConfirmPick()
+  const runOrQueue = useRunOrQueue()
+  const invalidate = useInvalidateFeatures()
   const [qty, setQty] = useState(String(line.qty_picked || line.qty_required))
+  const [queued, setQueued] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const submit = async () => {
+    const q = Number(qty)
+    const outcome = await runOrQueue({ type: 'pick_confirm', payload: { line: line.id, qty: q }, label: `${items.get(line.item_id)?.name ?? ''} × ${q}` }, () => wmsApi.confirmPick(line.id, q))
+    setError(null)
+    setQueued(outcome === 'queued')
+    if (outcome === 'done') await invalidate('pick_list_lines', 'pick_lists', 'warehouse_tasks')
+  }
   return (
     <li className="flex flex-wrap items-center gap-3 rounded-lg border p-3 text-[13px]">
       <div className="min-w-0 flex-1">
         <div className="font-medium">{items.get(line.item_id)?.name ?? line.item_id}</div>
         <div className="text-muted-foreground">{line.location_id ? locations.get(line.location_id)?.code : 'Sans emplacement'} · à préparer {formatQty(line.qty_required)}</div>
-        {confirm.error && <div className="text-red-700">{confirm.error.message}</div>}
+        {error && <div className="text-red-700">{error}</div>}
+        {queued && <div className="text-amber-700">Enregistré hors ligne — synchronisation automatique.</div>}
       </div>
       <Status value={line.status} />
       {editable && (
         <div className="flex items-end gap-2">
           <div className="w-28"><TextField label="Préparé" value={qty} onChange={setQty} /></div>
-          <Button variant="primary" loading={confirm.isPending} onClick={() => confirm.mutate({ line: line.id, qty: Number(qty) })}>Confirmer</Button>
+          <Button variant="primary" onClick={() => void submit().catch((e: Error) => setError(e.message))}>Confirmer</Button>
         </div>
       )}
     </li>

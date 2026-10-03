@@ -1,6 +1,16 @@
+import type { LucideIcon } from 'lucide-react'
+
 export type SearchKind =
   | 'Navigation'
   | 'Paramètres'
+  | 'Articles'
+  | 'Partenaires'
+  | 'Lots'
+  | 'Commandes d’achat'
+  | 'Commandes clients'
+  | 'Ordres de fabrication'
+  | 'Équipements'
+  | 'Employés'
 
 export type SearchItem = {
   id: string
@@ -16,7 +26,7 @@ export type SearchItem = {
   /** Metric badge */
   metric?: string
   /** Specific Lucide icon component for this item */
-  icon?: any
+  icon?: LucideIcon
   /** Organization-relative path, e.g. `parametres`. */
   path: string
 }
@@ -24,6 +34,14 @@ export type SearchItem = {
 export const KIND_ORDER: SearchKind[] = [
   'Navigation',
   'Paramètres',
+  'Articles',
+  'Partenaires',
+  'Lots',
+  'Commandes d’achat',
+  'Commandes clients',
+  'Ordres de fabrication',
+  'Équipements',
+  'Employés',
 ]
 
 export const normalize = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().trim()
