@@ -3,13 +3,14 @@
 import { Banner, Button, Modal } from '@xco-agency/corex-ui'
 import type { LucideIcon } from 'lucide-react'
 import { Plus } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { useRef, useState, type ReactNode } from 'react'
 import { DataTable, type DataTableColumn, type DataTableFilter } from '@/components/data-table'
 import { ImportAction } from '@/components/import-action'
 import { PageShell } from '@/components/page-shell'
 import { useCan } from '@/features/organization/permissions'
-import { useOrgPath } from '@/features/organization/context'
+import { useOrgPath, useOrganization } from '@/features/organization/context'
 import { downloadCsv } from '@/lib/csv'
 import type { ImportField } from '@/lib/csv-import'
 import { useT } from '@/lib/i18n'
@@ -56,6 +57,8 @@ export type EntityPageProps<Row extends { id: string }> = {
   /** Adjust the form state when opening a row (derived fields that are not columns). */
   toValues?: (row: Row, base: FormValues) => FormValues
   loadingExtra?: boolean
+  /** Replaces the default insert (e.g. an RPC that builds the record with its children). Must resolve with the new row (at least `id`). */
+  createFn?: (payload: Payload) => Promise<Row>
   /** Render without the page frame (header + scroll area), e.g. as a section of another page. */
   embedded?: boolean
   /** Content rendered after the table (inside the frame). */
@@ -71,6 +74,8 @@ export function EntityPage<Row extends { id: string }>(props: EntityPageProps<Ro
   const t = useT()
   const router = useRouter()
   const href = useOrgPath()
+  const org = useOrganization()
+  const client = useQueryClient()
   const can = useCan(permission)
   const list = hooks.useList()
   const create = hooks.useCreate()
@@ -116,7 +121,8 @@ export function EntityPage<Row extends { id: string }>(props: EntityPageProps<Ro
     try {
       if (row) await update.mutateAsync({ id: row.id, patch: payload })
       else {
-        const created = await create.mutateAsync(payload)
+        const created = props.createFn ? await props.createFn(payload) : await create.mutateAsync(payload)
+        if (props.createFn) await client.invalidateQueries({ queryKey: ['org', org.id] })
         if (afterCreatePath) {
           close()
           router.push(href(afterCreatePath(created)))
