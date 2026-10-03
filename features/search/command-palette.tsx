@@ -559,7 +559,7 @@ function CommandPaletteContent({ onClose }: { onClose: () => void }) {
             const meta = KIND_LABELS[group.kind];
             return (
               <div key={group.kind} className="pb-3 last:pb-1">
-                {/* Header (e.g. Paramètres (6), Chantiers (2), Matériaux (4)) */}
+                {/* Header (e.g. Navigation (1), Paramètres (6)) */}
                 <div className="px-3.5 py-1 text-[11px] font-semibold tracking-wider text-neutral-500 uppercase flex items-center justify-between dark:text-neutral-400">
                   <span>
                     {meta?.plural ?? group.kind} ({group.items.length})

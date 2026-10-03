@@ -77,7 +77,7 @@ function SettingsForm({ details }: { details: OrganizationDetails }) {
       <Card heading="Adresse de votre espace" gap="base">
         <TextField
           label="Identifiant dans l’URL"
-          prefix="buildo.ma/"
+          prefix="usineflow.ma/"
           value={form.slug ?? ''}
           onChange={set('slug')}
           error={slugError}

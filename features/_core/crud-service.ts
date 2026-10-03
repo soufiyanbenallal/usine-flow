@@ -2,7 +2,7 @@ import { toUserError } from '@/lib/errors'
 import { requireSupabase } from '@/lib/supabase'
 
 type ServiceOptions = {
-  /** PostgREST select string, e.g. '*, chantiers(name)'. Defaults to '*'. */
+  /** PostgREST select string, e.g. '*, organizations(name)'. Defaults to '*'. */
   select?: string
   order?: { column: string; ascending?: boolean }
 }

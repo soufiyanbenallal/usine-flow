@@ -2,7 +2,7 @@ import { createId } from '@paralleldrive/cuid2'
 import { requireSupabase } from './supabase'
 
 /** Private bucket. Objects live under `<organization_id>/…` — Storage RLS keys on that first folder. */
-export const BUCKET = 'buildo-files'
+export const BUCKET = 'usine-flow-files'
 
 export const safeFileName = (name: string) => name.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9._-]+/g, '_')
 

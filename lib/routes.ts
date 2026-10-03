@@ -5,5 +5,5 @@ export const RESERVED_SLUGS = [
   'privacy', 'terms', 'static', 'assets', 'public', '_next', 'favicon', 'robots', 'sitemap', 'buildo', 'usineflow', 'usine-flow', 'www',
 ] as const
 
-/** `/<org-slug>/<path>` — e.g. orgPath('atlas', 'chantiers') → '/atlas/chantiers'. */
+/** `/<org-slug>/<path>` — e.g. orgPath('atlas', 'parametres') → '/atlas/parametres'. */
 export const orgPath = (slug: string, path = '') => (path ? `/${slug}/${path.replace(/^\//, '')}` : `/${slug}`)

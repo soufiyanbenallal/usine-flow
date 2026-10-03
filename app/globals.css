@@ -4,7 +4,7 @@
 @import "shadcn/tailwind.css";
 
 /*
- * Buildo design tokens.
+ * UsineFlow design tokens.
  * The admin follows a Shopify-admin look: near-black rail + inset white canvas.
  * The sidebar tokens are dark in BOTH themes; only the canvas flips.
  */
@@ -147,7 +147,7 @@
   }
 }
 
-/* Printable documents (bon de commande, fiche chantier): only the sheet is printed. */
+/* Printable documents (bon de commande, fiche d'intervention): only the sheet is printed. */
 @media print {
   @page {
     size: A4;

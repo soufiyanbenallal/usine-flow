@@ -12,7 +12,7 @@ const ITEMS: { key: NotificationKey; label: string; help: string }[] = [
   { key: 'overdue_payments', label: 'Paiements en retard', help: 'Échéances dépassées (clients et fournisseurs).' },
   { key: 'low_stock', label: 'Stock bas', help: 'Matériaux sous leur seuil d’alerte.' },
   { key: 'missing_receipts', label: 'Justificatifs manquants', help: 'Dépenses sans reçu joint.' },
-  { key: 'budget_overrun', label: 'Dépassement de budget', help: 'Chantiers dont les dépenses dépassent le budget.' },
+  { key: 'budget_overrun', label: 'Dépassement de budget', help: 'Centres de coûts ou ordres dépassant le budget prévisionnel.' },
 ]
 
 function Form({ initial }: { initial: OrgSettings }) {
