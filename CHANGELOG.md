@@ -6,6 +6,16 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
+## [0.2.0] - 2026-10-03
+
+### Plateforme opérationnelle complète (guide `docs/usine-flow-guide.md`)
+
+- **Base de données** : 14 migrations (catalogue, inventaire à grand livre immuable, achats, ventes, fabrication, qualité, maintenance, équipe, finance, WMS, analytique, traçabilité, temps réel, synchronisation hors-ligne) avec RLS, audit, approbations, outbox d'événements et tests SQL de bout en bout.
+- **Modules applicatifs** : catalogue, inventaire, entrepôt (WMS), achats, ventes, fabrication, planification MRP, atelier, qualité, maintenance, équipe, finance, analytique, documents, import/export, intégrations (webhooks signés, clés API), assistant IA.
+- **Plateforme** : permissions granulaires avec surcharges par organisation, modules et fonctionnalités activables, numérotation, quotas, temps réel (Broadcast), notifications, internationalisation fr/ar/en avec RTL.
+- **Hors-ligne / PWA** : manifeste, service worker, file Dexie et synchronisation idempotente.
+- **Qualité logicielle** : tests Vitest (logique métier), tests SQL, tests e2e Playwright, script de charge k6, fonctions Edge Supabase.
+
 ## [0.1.0] - 2026-10-03
 
 ### Initialisation du Starter UsineFlow (Industrial Operations OS)

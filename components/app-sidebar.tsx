@@ -1,7 +1,9 @@
 "use client";
 
 import {
+  ChevronRight,
   ChevronsUpDown,
+  Globe,
   LogOut,
   PanelLeftOpen,
   Search,
@@ -28,6 +30,7 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -42,63 +45,86 @@ import { useCommandPalette } from "@/features/search/command-palette";
 import { NotificationsBell } from "@/features/alerts/notifications-bell";
 import { useOrganization, useOrgPath } from "@/features/organization/context";
 import { useAuth } from "@/lib/auth";
-import { isInside, mainNav } from "@/lib/nav";
+import { useEnabledModules } from "@/features/organization/modules";
+import { LOCALES, useI18n, useT } from "@/lib/i18n";
+import { groupNav, isInside, visibleNav } from "@/lib/nav";
+import { useUiStore } from "@/lib/stores/ui-store";
 import { Avatar, Text } from "@xco-agency/corex-ui";
 
-/** Parent pages with their related pages nested underneath (children show while the group is active). */
+/** Navigation grouped by section, filtered by the organization's enabled modules and the user's permissions. */
 function NavTree() {
   const { isMobile, setOpenMobile } = useSidebar();
   const pathname = usePathname();
   const { slug } = useOrganization();
   const href = useOrgPath();
+  const t = useT();
+  const enabled = useEnabledModules();
+  const collapsed = useUiStore((s) => s.collapsedGroups);
+  const toggleGroup = useUiStore((s) => s.toggleGroup);
   const close = () => isMobile && setOpenMobile(false);
+  const groups = groupNav(visibleNav(enabled));
 
   return (
-    <SidebarGroup>
-      <SidebarMenu className="space-y-0.5">
-        {mainNav.map((item) => {
-          const selfActive = isInside(pathname, slug, item.path, item.end);
-          const childActive = item.children?.some((c) =>
-            isInside(pathname, slug, c.path),
-          );
-          const expanded = !!item.children && (selfActive || childActive);
-          return (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton
-                render={
-                  <Link href={href(item.path)} onClick={close}>
-                    <item.icon />
-                    <Text>{item.title}</Text>
-                  </Link>
-                }
-                isActive={selfActive && !childActive}
-                tooltip={item.title}
-              />
-              {expanded && (
-                <SidebarMenuSub className="mx-0 px-0 gap-0.5 relative">
-                  {item.children!.map((child) => (
-                    <SidebarMenuSubItem key={child.path}>
-                      <SidebarMenuSubButton
-                        render={
-                          <Link href={href(child.path)} onClick={close}>
-                            <Text>{child.title}</Text>
-                          </Link>
-                        }
-                        isActive={isInside(pathname, slug, child.path)}
-                        className="h-8 pl-8"
-                      />
-                    </SidebarMenuSubItem>
-                  ))}
-                </SidebarMenuSub>
-              )}
-            </SidebarMenuItem>
-          );
-        })}
-      </SidebarMenu>
-    </SidebarGroup>
+    <>
+      {groups.map(({ group, items }) => (
+        <SidebarGroup key={group}>
+          {group !== "Aperçu" && (
+            <SidebarGroupLabel
+              render={
+                <button type="button" onClick={() => toggleGroup(group)} aria-expanded={!collapsed[group]} className="w-full cursor-pointer justify-between">
+                  <span>{t(group)}</span>
+                  <ChevronRight className={`size-3 transition-transform rtl:rotate-180 ${collapsed[group] ? "" : "rotate-90 rtl:rotate-90"}`} />
+                </button>
+              }
+            />
+          )}
+          {!collapsed[group] && (
+            <SidebarMenu className="space-y-0.5">
+              {items.map((item) => {
+                const selfActive = isInside(pathname, slug, item.path, item.end);
+                const childActive = item.children?.some((c) => isInside(pathname, slug, c.path));
+                const expanded = !!item.children && (selfActive || childActive);
+                return (
+                  <SidebarMenuItem key={item.path}>
+                    <SidebarMenuButton
+                      render={
+                        <Link href={href(item.path)} onClick={close}>
+                          <item.icon />
+                          <Text>{t(item.title)}</Text>
+                        </Link>
+                      }
+                      isActive={selfActive && !childActive}
+                      tooltip={t(item.title)}
+                    />
+                    {expanded && (
+                      <SidebarMenuSub className="mx-0 px-0 gap-0.5 relative">
+                        {item.children!.map((child) => (
+                          <SidebarMenuSubItem key={child.path}>
+                            <SidebarMenuSubButton
+                              render={
+                                <Link href={href(child.path)} onClick={close}>
+                                  <Text>{t(child.title)}</Text>
+                                </Link>
+                              }
+                              isActive={isInside(pathname, slug, child.path)}
+                              className="h-8 pl-8 rtl:pr-8 rtl:pl-2"
+                            />
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    )}
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          )}
+        </SidebarGroup>
+      ))}
+    </>
   );
 }
 function CommandPalette({ onOpen }: { onOpen: () => void }) {
+  const t = useT();
   return (
     <button
       onClick={onOpen}
@@ -109,7 +135,7 @@ function CommandPalette({ onOpen }: { onOpen: () => void }) {
       <Search className="size-4 shrink-0 text-sidebar-foreground/70" />
 
       <div className="flex-1 opacity-70 flex leading-none ml-2 group-data-[collapsible=icon]:hidden">
-        <Text>Rechercher</Text>
+        <Text>{t("Rechercher")}</Text>
       </div>
 
       <div className="relative z-10 flex items-center gap-1 group-data-[collapsible=icon]:hidden">
@@ -124,6 +150,8 @@ function CommandPalette({ onOpen }: { onOpen: () => void }) {
   );
 }
 export function AppSidebar() {
+  const t = useT();
+  const { locale, setLocale } = useI18n();
   const { auth, signOut } = useAuth();
   const organization = useOrganization();
   const router = useRouter();
@@ -184,11 +212,11 @@ export function AppSidebar() {
               render={
                 <Link href={href("parametres")}>
                   <Settings />
-                  <span>Paramètres</span>
+                  <span>{t("Paramètres")}</span>
                 </Link>
               }
               isActive={settingsActive}
-              tooltip="Paramètres"
+              tooltip={t("Paramètres")}
               className="h-8 text-[14px]"
             />
           </SidebarMenuItem>
@@ -212,15 +240,21 @@ export function AppSidebar() {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => router.push(href("parametres"))}>
-                <Settings /> Paramètres
+                <Settings /> {t("Paramètres")}
               </DropdownMenuItem>
+              {LOCALES.map((l) => (
+                <DropdownMenuItem key={l.value} onClick={() => setLocale(l.value)}>
+                  <Globe /> {l.label}
+                  {l.value === locale && <span className="ms-auto text-xs">✓</span>}
+                </DropdownMenuItem>
+              ))}
               <DropdownMenuItem
                 onClick={async () => {
                   await signOut();
                   router.push("/");
                 }}
               >
-                <LogOut /> Se déconnecter
+                <LogOut /> {t("Se déconnecter")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

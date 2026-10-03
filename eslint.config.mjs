@@ -14,6 +14,10 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     "dist/**",
     "coverage/**",
+    "supabase/functions/**",
+    "perf/**",
+    "playwright-report/**",
+    "test-results/**",
     "public/**",
   ]),
 ]);

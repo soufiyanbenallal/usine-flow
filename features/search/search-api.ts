@@ -7,11 +7,26 @@ export type TableSearchConfig = {
   select: string
   searchCols: string[]
   orderCol?: string
-  map: (row: any) => SearchItem
+  map: (row: Record<string, unknown>) => SearchItem
 }
 
 /** Registry of searchable data tables in UsineFlow (extensible for Factory/Workshop/Warehouse modules) */
-export const DATA_TABLE_CONFIGS: Partial<Record<SearchKind, TableSearchConfig>> = {}
+const str = (v: unknown) => (v == null ? '' : String(v))
+const entity = (kind: SearchKind, table: string, select: string, searchCols: string[], path: (row: Record<string, unknown>) => string, label: (row: Record<string, unknown>) => string, hint: (row: Record<string, unknown>) => string, orderCol = 'created_at'): TableSearchConfig => ({
+  kind, table, select, searchCols, orderCol,
+  map: (row) => ({ id: `${table}:${str(row.id)}`, kind, label: label(row), hint: hint(row), path: path(row) }),
+})
+
+export const DATA_TABLE_CONFIGS: Partial<Record<SearchKind, TableSearchConfig>> = {
+  Articles: entity('Articles', 'items', 'id, sku, name, internal_ref', ['sku', 'name', 'internal_ref'], (r) => `catalogue/articles/${str(r.id)}`, (r) => str(r.name), (r) => str(r.sku), 'sku'),
+  Partenaires: entity('Partenaires', 'partners', 'id, code, name, kinds', ['code', 'name'], () => 'catalogue/partenaires', (r) => str(r.name), (r) => str(r.code), 'name'),
+  Lots: entity('Lots', 'lots', 'id, lot_number, status', ['lot_number'], () => 'inventaire/lots', (r) => str(r.lot_number), (r) => str(r.status)),
+  'Commandes d’achat': entity('Commandes d’achat', 'purchase_orders', 'id, number, status', ['number'], (r) => `achats/commandes/${str(r.id)}`, (r) => str(r.number), (r) => str(r.status)),
+  'Commandes clients': entity('Commandes clients', 'sales_orders', 'id, number, status', ['number'], (r) => `ventes/commandes/${str(r.id)}`, (r) => str(r.number), (r) => str(r.status)),
+  'Ordres de fabrication': entity('Ordres de fabrication', 'production_orders', 'id, number, status', ['number'], (r) => `production/ordres/${str(r.id)}`, (r) => str(r.number), (r) => str(r.status)),
+  Équipements: entity('Équipements', 'assets', 'id, code, name', ['code', 'name'], (r) => `maintenance/equipements/${str(r.id)}`, (r) => str(r.name), (r) => str(r.code), 'code'),
+  Employés: entity('Employés', 'employees', 'id, code, full_name', ['code', 'full_name'], (r) => `equipe/employes/${str(r.id)}`, (r) => str(r.full_name), (r) => str(r.code), 'code'),
+}
 
 export type SearchQueryResult = {
   items: SearchItem[]
@@ -57,7 +72,7 @@ export async function searchSingleTable(
     const hasMore = rows.length > limit
     const pageRows = hasMore ? rows.slice(0, limit) : rows
     return {
-      items: pageRows.map(config.map),
+      items: (pageRows as unknown as Record<string, unknown>[]).map(config.map),
       hasMore,
     }
   } catch (err) {

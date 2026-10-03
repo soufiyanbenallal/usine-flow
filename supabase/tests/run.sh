@@ -18,7 +18,9 @@ psql_db -f /tmp/usine_flow_stub.sql
 echo "▶ migrations"
 for f in $(ls supabase/migrations/*.sql | sort); do
   echo "  $f"
-  psql_db -f "$f" 2>&1 | grep -vE "NOTICE|DETAIL:|^$" || true
+  out=$(psql_db -f "$f" 2>&1) || true
+  echo "$out" | grep -vE "NOTICE|DETAIL:|^ *$|^ *_(secure|readonly) *$|^-+$|^\([0-9]+ rows?\)$" || true
+  if echo "$out" | grep -q "ERROR:"; then echo "✘ migration failed: $f"; exit 1; fi
 done
 
 fail=0
