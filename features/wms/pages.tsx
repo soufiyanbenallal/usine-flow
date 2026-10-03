@@ -436,7 +436,7 @@ export function ScannerPage() {
       setHits((h) => [hit ?? { kind: 'unknown' as const, code }, ...h].slice(0, 20))
     } catch (e) { setError(e instanceof Error ? e.message : 'Erreur') }
   }
-  const open = (h: ScanHit) => router.push(href(h.kind === 'item' ? `catalogue/articles/${h.id}` : h.kind === 'lot' ? `stock/lots/${h.id}` : `entrepot/emplacements`))
+  const open = (h: ScanHit) => router.push(href(h.kind === 'item' ? `catalogue/articles/${h.id}` : h.kind === 'lot' ? `inventaire/lots` : `entrepot/emplacements`))
   return (
     <PageShell title="Scanner" icon={ScanLine} description="Scannez un article, un emplacement ou un lot (caméra, douchette ou saisie manuelle).">
       {error && <Banner tone="critical">{error}</Banner>}
