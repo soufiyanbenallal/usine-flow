@@ -42,3 +42,7 @@ next-env.d.ts
 
 # old Vite build output
 /dist/
+
+# playwright
+/playwright-report/
+/test-results/

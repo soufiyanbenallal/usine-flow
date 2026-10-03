@@ -38,3 +38,6 @@ end $$;
 
 revoke execute on function public.apply_client_operation(text, text, text, jsonb, text, timestamptz) from public, anon;
 grant execute on function public.apply_client_operation(text, text, text, jsonb, text, timestamptz) to authenticated;
+
+-- nightly routines are callable by the edge function `daily-jobs` (service role only)
+grant execute on function public.snapshot_inventory(text), public.cron_generate_preventive_work_orders(), public.flag_late_production_orders() to service_role;
