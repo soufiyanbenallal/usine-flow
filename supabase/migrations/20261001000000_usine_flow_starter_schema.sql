@@ -1,7 +1,13 @@
 -- UsineFlow Starter Schema: Multi-tenant operations foundation
 -- Organization, Profiles, Memberships, Invitations, Settings, and CUID ids with RLS.
 
-create extension if not exists pgcrypto;
+create extension if not exists pgcrypto with schema extensions;
+
+-- Wrapper to ensure gen_random_bytes is accessible regardless of search_path
+create or replace function public.gen_random_bytes(len integer)
+returns bytea language sql volatile as $$
+  select extensions.gen_random_bytes(len);
+$$;
 
 -- ───────── cuid generator ─────────
 -- Format-compatible with cuid2: 24-char lowercase text id.

@@ -729,7 +729,7 @@ create table public.webhooks (
   name text not null,
   url text not null check (url ~ '^https://'),
   events text[] not null default '{}',
-  secret text not null default encode(gen_random_bytes(24), 'hex'),
+  secret text not null default encode(extensions.gen_random_bytes(24), 'hex'),
   active boolean not null default true
 );
 select public._secure('webhooks', 'integrations.manage');

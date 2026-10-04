@@ -270,9 +270,10 @@ begin
 end $$;
 
 create or replace function public.post_delivery(p_id text)
-returns void language plpgsql security definer set search_path = '' set app.bypass_lock = 'on' as $$
+returns void language plpgsql security definer set search_path = '' as $$
 declare h public.deliveries; l record; v numeric; open_lines int; res record; left_qty numeric; take numeric;
 begin
+  perform set_config('app.bypass_lock', 'on', true);
   select * into h from public.deliveries where id = p_id for update;
   if not found then raise exception 'Livraison introuvable.' using errcode = '22023'; end if;
   perform public._require(h.organization_id, 'warehouse.dispatch');
@@ -306,9 +307,10 @@ begin
 end $$;
 
 create or replace function public.post_customer_return(p_id text)
-returns void language plpgsql security definer set search_path = '' set app.bypass_lock = 'on' as $$
+returns void language plpgsql security definer set search_path = '' as $$
 declare h public.customer_returns; l record; bucket public.stock_bucket;
 begin
+  perform set_config('app.bypass_lock', 'on', true);
   select * into h from public.customer_returns where id = p_id for update;
   if not found then raise exception 'Retour introuvable.' using errcode = '22023'; end if;
   perform public._require(h.organization_id, 'warehouse.receive');
@@ -323,9 +325,10 @@ begin
 end $$;
 
 create or replace function public.create_invoice_from_so(p_so text, p_delivered_only boolean default true)
-returns text language plpgsql security definer set search_path = '' set app.bypass_lock = 'on' as $$
+returns text language plpgsql security definer set search_path = '' as $$
 declare h public.sales_orders; iid text; n int;
 begin
+  perform set_config('app.bypass_lock', 'on', true);
   select * into h from public.sales_orders where id = p_so for update;
   if not found then raise exception 'Commande introuvable.' using errcode = '22023'; end if;
   perform public._require(h.organization_id, 'finance.write');
@@ -343,9 +346,10 @@ begin
 end $$;
 
 create or replace function public.post_sales_invoice(p_id text)
-returns void language plpgsql security definer set search_path = '' set app.bypass_lock = 'on' as $$
+returns void language plpgsql security definer set search_path = '' as $$
 declare h public.sales_invoices; l record; open_lines int;
 begin
+  perform set_config('app.bypass_lock', 'on', true);
   select * into h from public.sales_invoices where id = p_id for update;
   if not found then raise exception 'Facture introuvable.' using errcode = '22023'; end if;
   perform public._require(h.organization_id, 'finance.write');

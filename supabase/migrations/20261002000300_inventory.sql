@@ -622,9 +622,10 @@ end $$;
 
 -- ───────── posting: adjustments ─────────
 create or replace function public.post_stock_adjustment(p_id text)
-returns void language plpgsql security definer set search_path = '' set app.bypass_lock = 'on' as $$
+returns void language plpgsql security definer set search_path = '' as $$
 declare h public.stock_adjustments; l record; lid text; total numeric := 0; mid text; v numeric; amount numeric;
 begin
+  perform set_config('app.bypass_lock', 'on', true);
   select * into h from public.stock_adjustments where id = p_id for update;
   if not found then raise exception 'Document introuvable.' using errcode = '22023'; end if;
   perform public._require(h.organization_id, 'inventory.adjust');
@@ -777,9 +778,10 @@ end $$;
 
 -- ───────── reversal of posted documents (contre-passation) ─────────
 create or replace function public.reverse_document(p_type text, p_id text, p_reason text)
-returns void language plpgsql security definer set search_path = '' set app.bypass_lock = 'on' as $$
+returns void language plpgsql security definer set search_path = '' as $$
 declare tbl text; perm text; j jsonb; org text; m record; l record;
 begin
+  perform set_config('app.bypass_lock', 'on', true);
   if coalesce(trim(p_reason), '') = '' then raise exception 'Un motif est requis pour annuler un document comptabilisé.' using errcode = '22023'; end if;
   select x.tbl, x.perm into tbl, perm from (values
     ('stock_adjustment', 'stock_adjustments', 'inventory.adjust'), ('stock_transfer', 'stock_transfers', 'inventory.transfer'),

@@ -399,10 +399,11 @@ begin
 end $$;
 
 create or replace function public.post_purchase_receipt(p_id text)
-returns void language plpgsql security definer set search_path = '' set app.bypass_lock = 'on' as $$
+returns void language plpgsql security definer set search_path = '' as $$
 declare h public.purchase_receipts; l record; it public.items; lid text; bucket public.stock_bucket; loc text; cost numeric; factor numeric; mid text; po public.purchase_orders;
         zone_kind text; open_lines int; new_status text; insp text;
 begin
+  perform set_config('app.bypass_lock', 'on', true);
   select * into h from public.purchase_receipts where id = p_id for update;
   if not found then raise exception 'Réception introuvable.' using errcode = '22023'; end if;
   perform public._require(h.organization_id, 'warehouse.receive');
@@ -450,9 +451,10 @@ begin
 end $$;
 
 create or replace function public.post_supplier_return(p_id text)
-returns void language plpgsql security definer set search_path = '' set app.bypass_lock = 'on' as $$
+returns void language plpgsql security definer set search_path = '' as $$
 declare h public.supplier_returns; l record;
 begin
+  perform set_config('app.bypass_lock', 'on', true);
   select * into h from public.supplier_returns where id = p_id for update;
   if not found then raise exception 'Retour introuvable.' using errcode = '22023'; end if;
   perform public._require(h.organization_id, 'warehouse.dispatch');
