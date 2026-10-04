@@ -169,23 +169,142 @@ declare
   v_cc_prod1 text;
   v_cc_log text;
   v_cc_maint text;
+  v_col text;
+  v_all_tables text;
 
 begin
+  -- --------------------------------------------------------------------------
+  -- 0. Reset Database Data (Clean Slate before Seeding)
+  -- --------------------------------------------------------------------------
+  -- Truncate all application tables in public (CASCADE avoids FK order issues and does not fire row triggers)
+  select string_agg('public.' || quote_ident(table_name), ', ')
+  into v_all_tables
+  from information_schema.tables
+  where table_schema = 'public'
+    and table_type = 'BASE TABLE'
+    and table_name not in ('spatial_ref_sys');
+
+  if v_all_tables is not null then
+    execute 'truncate table ' || v_all_tables || ' cascade';
+  end if;
+
+  -- Delete previous test auth identities, sessions and users
+  if exists (select 1 from information_schema.tables where table_schema = 'auth' and table_name = 'identities') then
+    delete from auth.identities
+    where user_id in (
+      select id from auth.users where email in (
+        'admin@usineflow.ma', 'production@usineflow.ma', 'qualite@usineflow.ma',
+        'logistique@usineflow.ma', 'achats@usineflow.ma', 'operateur@usineflow.ma'
+      )
+    )
+    or user_id in (
+      v_admin_id, v_prod_id, v_qual_id, v_wh_id, v_buy_id, v_op_id,
+      '00000000-0000-0000-0000-000000000001'::uuid,
+      '00000000-0000-0000-0000-000000000002'::uuid,
+      '00000000-0000-0000-0000-000000000003'::uuid,
+      '00000000-0000-0000-0000-000000000004'::uuid,
+      '00000000-0000-0000-0000-000000000005'::uuid,
+      '00000000-0000-0000-0000-000000000006'::uuid
+    );
+  end if;
+
+  if exists (select 1 from information_schema.tables where table_schema = 'auth' and table_name = 'sessions') then
+    delete from auth.sessions
+    where user_id in (
+      select id from auth.users where email in (
+        'admin@usineflow.ma', 'production@usineflow.ma', 'qualite@usineflow.ma',
+        'logistique@usineflow.ma', 'achats@usineflow.ma', 'operateur@usineflow.ma'
+      )
+    )
+    or user_id in (
+      v_admin_id, v_prod_id, v_qual_id, v_wh_id, v_buy_id, v_op_id,
+      '00000000-0000-0000-0000-000000000001'::uuid,
+      '00000000-0000-0000-0000-000000000002'::uuid,
+      '00000000-0000-0000-0000-000000000003'::uuid,
+      '00000000-0000-0000-0000-000000000004'::uuid,
+      '00000000-0000-0000-0000-000000000005'::uuid,
+      '00000000-0000-0000-0000-000000000006'::uuid
+    );
+  end if;
+
+  if exists (select 1 from information_schema.tables where table_schema = 'auth' and table_name = 'users') then
+    delete from auth.users
+    where email in (
+      'admin@usineflow.ma', 'production@usineflow.ma', 'qualite@usineflow.ma',
+      'logistique@usineflow.ma', 'achats@usineflow.ma', 'operateur@usineflow.ma'
+    )
+    or id in (
+      v_admin_id, v_prod_id, v_qual_id, v_wh_id, v_buy_id, v_op_id,
+      '00000000-0000-0000-0000-000000000001'::uuid,
+      '00000000-0000-0000-0000-000000000002'::uuid,
+      '00000000-0000-0000-0000-000000000003'::uuid,
+      '00000000-0000-0000-0000-000000000004'::uuid,
+      '00000000-0000-0000-0000-000000000005'::uuid,
+      '00000000-0000-0000-0000-000000000006'::uuid
+    );
+  end if;
+
   -- --------------------------------------------------------------------------
   -- 1. Create or ensure Auth Users & Identities
   -- --------------------------------------------------------------------------
   if exists (select 1 from information_schema.tables where table_schema = 'auth' and table_name = 'users') then
     if exists (select 1 from information_schema.columns where table_schema = 'auth' and table_name = 'users' and column_name = 'encrypted_password') then
       -- Full Supabase Auth schema
-      insert into auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
+      insert into auth.users (
+        id, instance_id, aud, role, email, encrypted_password, email_confirmed_at,
+        raw_app_meta_data, raw_user_meta_data,
+        confirmation_token, recovery_token, email_change_token_new, email_change,
+        created_at, updated_at
+      )
       values
-        (v_admin_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'admin@usineflow.ma', extensions.crypt('Password123!', extensions.gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Mehdi Benkirane","company_name":"Atlas Métal & Industrie SARL"}', now(), now()),
-        (v_prod_id,  '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'production@usineflow.ma', extensions.crypt('Password123!', extensions.gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Rachid El Amrani","company_name":"Atlas Métal & Industrie SARL"}', now(), now()),
-        (v_qual_id,  '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'qualite@usineflow.ma', extensions.crypt('Password123!', extensions.gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Nadia Chraibi","company_name":"Atlas Métal & Industrie SARL"}', now(), now()),
-        (v_wh_id,    '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'logistique@usineflow.ma', extensions.crypt('Password123!', extensions.gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Youssef Berrada","company_name":"Atlas Métal & Industrie SARL"}', now(), now()),
-        (v_buy_id,   '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'achats@usineflow.ma', extensions.crypt('Password123!', extensions.gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Fatima Zahra Tazi","company_name":"Atlas Métal & Industrie SARL"}', now(), now()),
-        (v_op_id,    '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'operateur@usineflow.ma', extensions.crypt('Password123!', extensions.gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Hassan Moutawakkil","company_name":"Atlas Métal & Industrie SARL"}', now(), now())
-      on conflict (id) do nothing;
+        (v_admin_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'admin@usineflow.ma', extensions.crypt('Password123!', extensions.gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Mehdi Benkirane","company_name":"Atlas Métal & Industrie SARL"}', '', '', '', '', now(), now()),
+        (v_prod_id,  '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'production@usineflow.ma', extensions.crypt('Password123!', extensions.gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Rachid El Amrani","company_name":"Atlas Métal & Industrie SARL"}', '', '', '', '', now(), now()),
+        (v_qual_id,  '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'qualite@usineflow.ma', extensions.crypt('Password123!', extensions.gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Nadia Chraibi","company_name":"Atlas Métal & Industrie SARL"}', '', '', '', '', now(), now()),
+        (v_wh_id,    '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'logistique@usineflow.ma', extensions.crypt('Password123!', extensions.gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Youssef Berrada","company_name":"Atlas Métal & Industrie SARL"}', '', '', '', '', now(), now()),
+        (v_buy_id,   '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'achats@usineflow.ma', extensions.crypt('Password123!', extensions.gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Fatima Zahra Tazi","company_name":"Atlas Métal & Industrie SARL"}', '', '', '', '', now(), now()),
+        (v_op_id,    '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'operateur@usineflow.ma', extensions.crypt('Password123!', extensions.gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Hassan Moutawakkil","company_name":"Atlas Métal & Industrie SARL"}', '', '', '', '', now(), now())
+      on conflict (id) do update set
+        encrypted_password = excluded.encrypted_password,
+        email_confirmed_at = coalesce(auth.users.email_confirmed_at, excluded.email_confirmed_at),
+        raw_app_meta_data = excluded.raw_app_meta_data,
+        raw_user_meta_data = excluded.raw_user_meta_data,
+        confirmation_token = '',
+        recovery_token = '',
+        email_change_token_new = '',
+        email_change = '',
+        updated_at = now();
+
+      -- Sanitize all token and change columns in auth.users so GoTrue scanner never receives NULL
+      for v_col in
+        select column_name
+        from information_schema.columns
+        where table_schema = 'auth'
+          and table_name = 'users'
+          and column_name in (
+            'confirmation_token',
+            'recovery_token',
+            'email_change_token_new',
+            'email_change',
+            'email_change_token_current',
+            'phone_change',
+            'phone_change_token',
+            'reauthentication_token'
+          )
+      loop
+        execute format('update auth.users set %I = coalesce(%I, '''') where %I is null and id in (%L, %L, %L, %L, %L, %L)',
+          v_col, v_col, v_col, v_admin_id, v_prod_id, v_qual_id, v_wh_id, v_buy_id, v_op_id);
+      end loop;
+
+      if exists (select 1 from information_schema.columns where table_schema = 'auth' and table_name = 'users' and column_name = 'is_sso_user') then
+        execute format('update auth.users set is_sso_user = coalesce(is_sso_user, false) where is_sso_user is null and id in (%L, %L, %L, %L, %L, %L)',
+          v_admin_id, v_prod_id, v_qual_id, v_wh_id, v_buy_id, v_op_id);
+      end if;
+
+      if exists (select 1 from information_schema.columns where table_schema = 'auth' and table_name = 'users' and column_name = 'is_anonymous') then
+        execute format('update auth.users set is_anonymous = coalesce(is_anonymous, false) where is_anonymous is null and id in (%L, %L, %L, %L, %L, %L)',
+          v_admin_id, v_prod_id, v_qual_id, v_wh_id, v_buy_id, v_op_id);
+      end if;
+
     else
       -- Test stub schema
       insert into auth.users (id, email, raw_user_meta_data)
@@ -200,15 +319,18 @@ begin
     end if;
 
     if exists (select 1 from information_schema.tables where table_schema = 'auth' and table_name = 'identities') then
+      delete from auth.identities where user_id in (
+        v_admin_id, v_prod_id, v_qual_id, v_wh_id, v_buy_id, v_op_id
+      );
+
       insert into auth.identities (id, user_id, identity_data, provider, provider_id, last_sign_in_at, created_at, updated_at)
       values
-        (v_admin_id, v_admin_id, format('{"sub":"%s","email":"%s"}', v_admin_id, 'admin@usineflow.ma')::jsonb, 'email', v_admin_id, now(), now(), now()),
-        (v_prod_id,  v_prod_id,  format('{"sub":"%s","email":"%s"}', v_prod_id,  'production@usineflow.ma')::jsonb, 'email', v_prod_id,  now(), now(), now()),
-        (v_qual_id,  v_qual_id,  format('{"sub":"%s","email":"%s"}', v_qual_id,  'qualite@usineflow.ma')::jsonb, 'email', v_qual_id,  now(), now(), now()),
-        (v_wh_id,    v_wh_id,    format('{"sub":"%s","email":"%s"}', v_wh_id,    'logistique@usineflow.ma')::jsonb, 'email', v_wh_id,    now(), now(), now()),
-        (v_buy_id,   v_buy_id,   format('{"sub":"%s","email":"%s"}', v_buy_id,   'achats@usineflow.ma')::jsonb, 'email', v_buy_id,   now(), now(), now()),
-        (v_op_id,    v_op_id,    format('{"sub":"%s","email":"%s"}', v_op_id,    'operateur@usineflow.ma')::jsonb, 'email', v_op_id,    now(), now(), now())
-      on conflict (id) do nothing;
+        (v_admin_id, v_admin_id, jsonb_build_object('sub', v_admin_id::text, 'email', 'admin@usineflow.ma', 'email_verified', true), 'email', v_admin_id::text, now(), now(), now()),
+        (v_prod_id,  v_prod_id,  jsonb_build_object('sub', v_prod_id::text,  'email', 'production@usineflow.ma', 'email_verified', true), 'email', v_prod_id::text,  now(), now(), now()),
+        (v_qual_id,  v_qual_id,  jsonb_build_object('sub', v_qual_id::text,  'email', 'qualite@usineflow.ma', 'email_verified', true), 'email', v_qual_id::text,  now(), now(), now()),
+        (v_wh_id,    v_wh_id,    jsonb_build_object('sub', v_wh_id::text,    'email', 'logistique@usineflow.ma', 'email_verified', true), 'email', v_wh_id::text,    now(), now(), now()),
+        (v_buy_id,   v_buy_id,   jsonb_build_object('sub', v_buy_id::text,   'email', 'achats@usineflow.ma', 'email_verified', true), 'email', v_buy_id::text,   now(), now(), now()),
+        (v_op_id,    v_op_id,    jsonb_build_object('sub', v_op_id::text,    'email', 'operateur@usineflow.ma', 'email_verified', true), 'email', v_op_id::text,    now(), now(), now());
     end if;
   end if;
 
