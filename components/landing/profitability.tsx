@@ -1,130 +1,126 @@
-import { CircleDollarSign, TrendingUp, Timer } from 'lucide-react'
+'use client'
+
+import { motion } from 'motion/react'
+import { CircleDollarSign, Timer, TrendingUp } from 'lucide-react'
+import { Card, CardHead, CountUp, EASE, Reveal, Section, SectionHeader } from './ui'
+
+const KPIS = [
+  { label: 'Inventory value', value: 1.84, decimals: 2, suffix: 'M', hint: 'MAD' },
+  { label: 'Quality pass rate', value: 97.4, decimals: 1, suffix: '%' },
+  { label: 'Material variance', value: 3.2, decimals: 1, prefix: '+', suffix: '%' },
+  { label: 'Downtime', value: 2.8, decimals: 1, suffix: '%' },
+]
+
+const FEATURES = [
+  { icon: CircleDollarSign, title: 'Actual vs standard cost', body: 'Material, labour and machine time per order.' },
+  { icon: TrendingUp, title: 'Product and order margin', body: 'Know which products and customers earn money.' },
+  { icon: Timer, title: 'Downtime and variance', body: 'See where hours and material are lost.' },
+]
+
+// unit cost per week (DH), trending from 118.40 to 114.82
+const COST = [118.4, 118.9, 117.6, 117.9, 116.8, 116.1, 116.4, 115.5, 115.1, 114.82]
+const W = 560
+const H = 160
+const min = 114
+const max = 119.5
+const pts = COST.map((v, i) => [(i / (COST.length - 1)) * W, H - ((v - min) / (max - min)) * H] as const)
+const line = pts.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`).join(' ')
+const area = `${line} L${W} ${H} L0 ${H} Z`
 
 export function Profitability() {
+  const last = pts[pts.length - 1]
   return (
-    <section className="bg-[#f0f2ef] py-24 sm:py-32">
-      <div className="mx-auto grid max-w-7xl gap-12 px-5 lg:grid-cols-[.9fr_1.1fr] lg:items-center lg:px-8">
-        <div>
-          <div className="text-xs font-bold uppercase tracking-[.14em] text-[#008060]">
-            Management visibility
-          </div>
-          <h2 className="mt-4 text-4xl font-semibold tracking-[-.045em] text-neutral-950 sm:text-5xl">
-            See where your money goes.
-          </h2>
-          <p className="mt-5 max-w-lg text-[16px] leading-7 text-neutral-600">
-            Turn material, labor, machine and waste data into a clear view of
-            product cost and operational performance.
-          </p>
-          <div className="mt-7 space-y-3 text-sm text-neutral-700">
-            <div className="flex items-center gap-3">
-              <span className="grid h-7 w-7 place-items-center rounded-lg bg-white shadow-xs">
-                <CircleDollarSign className="h-3.5 w-3.5 text-neutral-700" />
-              </span>
-              Actual vs standard cost
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="grid h-7 w-7 place-items-center rounded-lg bg-white shadow-xs">
-                <TrendingUp className="h-3.5 w-3.5 text-neutral-700" />
-              </span>
-              Product and order margin
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="grid h-7 w-7 place-items-center rounded-lg bg-white shadow-xs">
-                <Timer className="h-3.5 w-3.5 text-neutral-700" />
-              </span>
-              Downtime and production variance
-            </div>
-          </div>
-        </div>
-        <div className="rounded-[28px] border border-neutral-200 bg-white p-5 shadow-card sm:p-7">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm font-semibold text-neutral-950">Operational health</div>
-              <div className="mt-0.5 text-[10px] text-neutral-400">
-                Current month
-              </div>
-            </div>
-            <span className="rounded-full bg-neutral-100 px-2 py-1 text-[9px] font-semibold text-neutral-600">
-              Factory A
-            </span>
-          </div>
-          <div className="mt-6 grid gap-3 sm:grid-cols-2">
-            <div className="rounded-2xl border border-neutral-200 p-4">
-              <div className="text-[10px] text-neutral-400">Inventory value</div>
-              <div className="mt-2 text-2xl font-semibold tracking-[-.03em] text-neutral-950">
-                1.84M <span className="text-xs text-neutral-400">MAD</span>
-              </div>
-            </div>
-            <div className="rounded-2xl border border-neutral-200 p-4">
-              <div className="text-[10px] text-neutral-400">
-                Quality pass rate
-              </div>
-              <div className="mt-2 text-2xl font-semibold tracking-[-.03em] text-neutral-950">
-                97.4%
-              </div>
-            </div>
-            <div className="rounded-2xl border border-neutral-200 p-4">
-              <div className="text-[10px] text-neutral-400">
-                Material variance
-              </div>
-              <div className="mt-2 text-2xl font-semibold tracking-[-.03em] text-neutral-950">
-                +3.2%
-              </div>
-            </div>
-            <div className="rounded-2xl border border-neutral-200 p-4">
-              <div className="text-[10px] text-neutral-400">Downtime</div>
-              <div className="mt-2 text-2xl font-semibold tracking-[-.03em] text-neutral-950">
-                2.8%
-              </div>
-            </div>
-          </div>
-          <div className="mt-5 rounded-2xl bg-[#111513] p-4 text-white">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-[10px] text-white/40">
-                  Production cost trend
+    <Section tone="light" className="border-t border-line">
+      <SectionHeader
+        label="Management visibility"
+        title="See where your money goes."
+        description="Turn material, labor, machine and waste data into a clear view of product cost and operational performance."
+      />
+
+      <Reveal className="mt-16 lg:mt-20">
+        <Card className="overflow-hidden">
+          <div className="grid lg:grid-cols-[1fr_1.5fr]">
+            <dl className="grid grid-cols-2 border-b border-line lg:border-b-0 lg:border-r">
+              {KPIS.map((k, i) => (
+                <div
+                  key={k.label}
+                  className={`p-6 ${i % 2 === 0 ? 'border-r border-line' : ''} ${i < 2 ? 'border-b border-line' : ''}`}
+                >
+                  <dt className="text-[12px] text-slate">{k.label}</dt>
+                  <dd className="mt-3 flex items-baseline gap-1 text-[1.75rem] font-medium tracking-[-0.03em]">
+                    <CountUp to={k.value} decimals={k.decimals} prefix={k.prefix} suffix={k.suffix} />
+                    {k.hint && <span className="text-[13px] font-normal tracking-normal text-slate">{k.hint}</span>}
+                  </dd>
                 </div>
-                <div className="mt-1 text-sm font-semibold">
-                  118.40 → 114.82 DH
-                </div>
+              ))}
+            </dl>
+
+            <div className="p-6">
+              <CardHead
+                title="Unit production cost · Table T-420"
+                caption="Last 10 weeks · DH"
+                right={<span className="pill pill-success text-[11px]">−3.0%</span>}
+              />
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-[1.75rem] font-medium tracking-[-0.03em]">114.82</span>
+                <span className="text-[13px] text-slate">from 118.40</span>
               </div>
-              <span className="text-[10px] font-semibold text-emerald-300">
-                −3.0%
-              </span>
-            </div>
-            <div className="mt-5 flex h-20 items-end gap-1.5">
-              <span
-                className="flex-1 rounded-t bg-white/10"
-                style={{ height: '78%' }}
-              ></span>
-              <span
-                className="flex-1 rounded-t bg-white/10"
-                style={{ height: '68%' }}
-              ></span>
-              <span
-                className="flex-1 rounded-t bg-white/15"
-                style={{ height: '72%' }}
-              ></span>
-              <span
-                className="flex-1 rounded-t bg-emerald-400"
-                style={{ height: '59%' }}
-              ></span>
-              <span
-                className="flex-1 rounded-t bg-emerald-300"
-                style={{ height: '52%' }}
-              ></span>
-              <span
-                className="flex-1 rounded-t bg-emerald-300"
-                style={{ height: '45%' }}
-              ></span>
-              <span
-                className="flex-1 rounded-t bg-emerald-200"
-                style={{ height: '39%' }}
-              ></span>
+              <div className="relative mt-4 h-40">
+              <svg viewBox={`0 -8 ${W} ${H + 16}`} className="size-full overflow-visible" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="cost-fill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stopColor="#0f7a7c" stopOpacity=".14" />
+                    <stop offset="1" stopColor="#0f7a7c" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                {[0, 0.5, 1].map((t) => (
+                  <line key={t} x1="0" x2={W} y1={H * t} y2={H * t} stroke="#e6e6e9" strokeDasharray="3 4" vectorEffect="non-scaling-stroke" />
+                ))}
+                <motion.path
+                  d={area}
+                  fill="url(#cost-fill)"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.9, duration: 0.8 }}
+                />
+                <motion.path
+                  d={line}
+                  fill="none"
+                  stroke="#0f7a7c"
+                  strokeWidth="2"
+                  strokeLinejoin="round"
+                  vectorEffect="non-scaling-stroke"
+                  initial={{ pathLength: 0 }}
+                  whileInView={{ pathLength: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 1.6, ease: EASE }}
+                />
+              </svg>
+              <motion.span
+                aria-hidden
+                initial={{ scale: 0 }}
+                whileInView={{ scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 1.5, type: 'spring', stiffness: 300, damping: 18 }}
+                style={{ left: '100%', top: `${((last[1] + 8) / (H + 16)) * 100}%` }}
+                className="absolute -ml-1.5 -mt-1.5 size-3 rounded-full border-2 border-flow-teal bg-white"
+              />
+              </div>
             </div>
           </div>
-        </div>
+        </Card>
+      </Reveal>
+
+      <div className="mt-12 grid gap-8 sm:grid-cols-3">
+        {FEATURES.map((f, i) => (
+          <Reveal key={f.title} delay={i * 0.06}>
+            <f.icon className="size-4 text-flow-teal" />
+            <h3 className="mt-4 text-[14px] font-medium">{f.title}</h3>
+            <p className="mt-1 text-[13px] leading-5 text-slate">{f.body}</p>
+          </Reveal>
+        ))}
       </div>
-    </section>
+    </Section>
   )
 }

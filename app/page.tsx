@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { MotionConfig } from 'motion/react'
 import { Header } from '@/components/landing/header'
 import { Hero } from '@/components/landing/hero'
 import { TrustStrip } from '@/components/landing/trust-strip'
@@ -18,68 +19,45 @@ import { FinalCTA } from '@/components/landing/final-cta'
 import { Footer } from '@/components/landing/footer'
 import { DemoModal } from '@/components/landing/demo-modal'
 
+/*
+ * Bands alternate in pairs so the page reads as one rhythm:
+ * dark (hero) → light (problem, platform) → dark (flow, floor) → light (trace, cost)
+ * → dark (teams, mobile) → light (AI, Morocco) → dark (CTA, footer).
+ */
 export default function LandingPage() {
-  const [demoModalOpen, setDemoModalOpen] = useState(false)
-
-  const handleOpenDemo = () => {
-    setDemoModalOpen(true)
-  }
-
-  const handleCloseDemo = () => {
-    setDemoModalOpen(false)
-  }
+  const [demoOpen, setDemoOpen] = useState(false)
+  const openDemo = () => setDemoOpen(true)
 
   return (
-    <div className="min-h-screen bg-[#f7f7f5] text-[#171918] selection:bg-emerald-100 selection:text-emerald-950 antialiased">
-      {/* 1. Header (Sticky with blur backdrop on scroll) */}
-      <Header onOpenDemo={handleOpenDemo} />
+    <MotionConfig reducedMotion="user">
+      <div className="lp-root min-h-screen bg-ink antialiased selection:bg-flow-blue/25">
+        <Header onOpenDemo={openDemo} />
 
-      <main id="top">
-        {/* 2. Hero Section + Hero Dashboard & Floating Cards */}
-        <Hero onOpenDemo={handleOpenDemo} />
+        <main>
+          <Hero onOpenDemo={openDemo} />
+          <TrustStrip />
 
-        {/* 3. Social Proof / Trust Strip */}
-        <TrustStrip />
+          <ProblemSection />
+          <PlatformOverview />
 
-        {/* 4. Problem (The old way vs Connected) */}
-        <ProblemSection />
+          <ConnectedOperations />
+          <ProductionSection />
 
-        {/* 5. The Platform (8 modular capabilities) */}
-        <PlatformOverview />
+          <Traceability />
+          <Profitability />
 
-        {/* 6. Connected Operations (Pipeline & cross-functional badges) */}
-        <ConnectedOperations />
+          <RoleExperience />
+          <MobileOperations />
 
-        {/* 7. Factory & Warehouse Split (Production floor board + Live synced WMS) */}
-        <ProductionSection />
+          <AISection />
+          <MoroccoSection />
 
-        {/* 8. Traceability (Supplier lot -> OF -> Finished lot -> Delivery) */}
-        <Traceability />
+          <FinalCTA onOpenDemo={openDemo} />
+        </main>
 
-        {/* 9. Management Visibility & Profitability (Actual vs standard cost & KPIs) */}
-        <Profitability />
-
-        {/* 10. Built around the work (Owner, Production, Warehouse, Quality, Maintenance, Operator) */}
-        <RoleExperience />
-
-        {/* 11. On the Shop Floor (PWA phone mockup & Barcode scanner card) */}
-        <MobileOperations />
-
-        {/* 12. Intelligence (Grounded industrial AI insights) */}
-        <AISection />
-
-        {/* 13. Morocco & Multi-Site (Casablanca, Fès, Meknès, Tangier live monitor) */}
-        <MoroccoSection />
-
-        {/* 14. Final CTA (Start free / Book a demo) */}
-        <FinalCTA onOpenDemo={handleOpenDemo} />
-      </main>
-
-      {/* 15. Footer */}
-      <Footer />
-
-      {/* Interactive Demo Modal */}
-      <DemoModal isOpen={demoModalOpen} onClose={handleCloseDemo} />
-    </div>
+        <Footer />
+        <DemoModal isOpen={demoOpen} onClose={() => setDemoOpen(false)} />
+      </div>
+    </MotionConfig>
   )
 }

@@ -1,100 +1,138 @@
-import { ClipboardList, PackageCheck, BadgeCheck, Factory } from 'lucide-react'
+'use client'
+
+import { useEffect, useRef, useState } from 'react'
+import { AnimatePresence, motion, useInView, useReducedMotion } from 'motion/react'
+import { BadgeCheck, Bell, ClipboardList, Coins, Factory, History, Lock, PackageCheck, Boxes, type LucideIcon } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Card, EASE, LiveDot, Section, SectionHeader } from './ui'
+
+const STAGES: { icon: LucideIcon; title: string; detail: string }[] = [
+  { icon: ClipboardList, title: 'Purchase', detail: 'PO approved' },
+  { icon: PackageCheck, title: 'Receiving', detail: '218 units received' },
+  { icon: BadgeCheck, title: 'Quality', detail: 'Lot approved' },
+  { icon: Factory, title: 'Production', detail: 'OF-00942 started' },
+]
+
+/** The activity log the chain writes, in order. `stage` = which stage emitted it. */
+const EVENTS: { stage: number; icon: LucideIcon; time: string; who: string; text: string; ref: string }[] = [
+  { stage: 0, icon: ClipboardList, time: '08:12', who: 'Karim B.', text: 'approved purchase order', ref: 'PO-2026-118' },
+  { stage: 1, icon: PackageCheck, time: '10:02', who: 'Dock 2', text: 'received 218 pcs of steel sheet', ref: 'RM-20482' },
+  { stage: 1, icon: Boxes, time: '10:02', who: 'System', text: 'stock updated in quarantine', ref: 'A-03-12' },
+  { stage: 2, icon: BadgeCheck, time: '10:41', who: 'Imane T.', text: 'released lot after inspection', ref: 'LOT-SS-2048' },
+  { stage: 3, icon: Lock, time: '10:41', who: 'System', text: 'reserved material for order', ref: 'OF-00942' },
+  { stage: 3, icon: Factory, time: '11:05', who: 'Line 2', text: 'started production order', ref: 'OF-00942' },
+  { stage: 3, icon: Coins, time: '11:05', who: 'System', text: 'recorded material cost', ref: '25,174 MAD' },
+  { stage: 3, icon: Bell, time: '11:05', who: 'System', text: 'notified production manager', ref: 'Youssef B.' },
+]
 
 export function ConnectedOperations() {
+  const ref = useRef<HTMLDivElement>(null)
+  const inView = useInView(ref, { margin: '-160px' })
+  const reduce = useReducedMotion()
+  const [tick, setCount] = useState(0)
+
+  useEffect(() => {
+    if (!inView || reduce) return
+    // play the chain, hold on the full log, then replay
+    const id = setTimeout(
+      () => setCount((c) => (c >= EVENTS.length + 3 ? 0 : c + 1)),
+      tick === 0 ? 400 : 1100,
+    )
+    return () => clearTimeout(id)
+  }, [inView, reduce, tick])
+
+  const count = reduce ? EVENTS.length : tick
+
+  const shown = EVENTS.slice(0, Math.min(count, EVENTS.length))
+  const stage = shown.length ? shown[shown.length - 1].stage : -1
+
   return (
-    <section id="operations" className="py-24 sm:py-32">
-      <div className="mx-auto max-w-7xl px-5 lg:px-8">
-        <div className="max-w-2xl">
-          <div className="text-xs font-bold uppercase tracking-[.14em] text-[#008060]">
-            Connected operations
+    <Section id="operations" tone="dark">
+      <SectionHeader
+        label="Connected operations"
+        title="Everything is connected."
+        description="A purchase receipt can trigger quality, update stock, unlock production and show up in a manager's dashboard — without copying the same information five times."
+      />
+
+      <div ref={ref} className="mt-16 grid gap-3 lg:mt-20 lg:grid-cols-[1fr_1.35fr]">
+        {/* stages */}
+        <Card className="p-2">
+          {STAGES.map((s, i) => {
+            const done = stage >= i
+            const current = stage === i
+            return (
+              <div key={s.title} className="relative flex items-center gap-4 rounded-xl px-4 py-4">
+                {current && (
+                  <motion.span
+                    layoutId="stage-highlight"
+                    transition={{ type: 'spring', stiffness: 300, damping: 32 }}
+                    className="absolute inset-0 rounded-xl bg-white/4"
+                  />
+                )}
+                <span
+                  className={cn(
+                    'relative grid size-9 place-items-center rounded-lg border transition-colors duration-500',
+                    done ? 'border-flow-blue/40 bg-flow-blue/10 text-flow-blue' : 'border-white/8 text-white/30',
+                  )}
+                >
+                  <s.icon className="size-4" />
+                </span>
+                <div className="relative min-w-0 flex-1">
+                  <div className={cn('text-[14px] font-medium transition-colors', done ? 'text-white' : 'text-white/40')}>
+                    {s.title}
+                  </div>
+                  <div className="text-[12px] text-fog">{s.detail}</div>
+                </div>
+                <span
+                  className={cn(
+                    'relative text-[11px] font-medium transition-colors duration-500',
+                    done ? 'text-emerald-400' : 'text-white/25',
+                  )}
+                >
+                  {done ? 'Done' : 'Waiting'}
+                </span>
+                {i < STAGES.length - 1 && (
+                  <span className="absolute bottom-[-6px] left-[34px] h-3 w-px bg-white/10" aria-hidden />
+                )}
+              </div>
+            )
+          })}
+        </Card>
+
+        {/* activity log */}
+        <Card className="flex min-h-[420px] flex-col overflow-hidden">
+          <div className="flex items-center justify-between border-b border-white/8 px-5 py-3.5">
+            <div className="flex items-center gap-2 text-[13px] font-medium">
+              <History className="size-3.5 text-fog" /> Activity
+            </div>
+            <LiveDot />
           </div>
-          <h2 className="mt-4 text-4xl font-semibold tracking-[-.045em] text-neutral-950 sm:text-5xl">
-            Everything is connected.
-          </h2>
-          <p className="mt-5 text-[16px] leading-7 text-neutral-600">
-            A purchase receipt can trigger quality, update stock, unlock
-            production and show up in a manager&apos;s dashboard without copying
-            the same information five times.
-          </p>
-        </div>
-        <div className="mt-12 overflow-x-auto pb-2">
-          <div className="min-w-[900px] rounded-[26px] border border-neutral-200 bg-white p-5 shadow-card sm:p-7">
-            <div className="flex items-center justify-between gap-2">
-              <div className="h-px flex-1 bg-neutral-200"></div>
-              <div className="h-px w-4 bg-neutral-200"></div>
-              <div className="h-px flex-1 bg-neutral-200"></div>
-              <div className="h-px w-4 bg-neutral-200"></div>
-              <div className="h-px flex-1 bg-neutral-200"></div>
-              <div className="h-px w-4 bg-neutral-200"></div>
-              <div className="h-px flex-1 bg-neutral-200"></div>
-            </div>
-            <div className="-mt-5 grid grid-cols-7 items-start gap-2">
-              <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-                <div className="grid h-9 w-9 place-items-center rounded-xl bg-white shadow-xs">
-                  <ClipboardList className="h-4 w-4 text-neutral-700" />
-                </div>
-                <div className="mt-3 text-sm font-semibold text-neutral-900">Purchase</div>
-                <div className="mt-1 text-[10px] text-neutral-500">
-                  PO approved
-                </div>
-              </div>
-              <div className="pt-14 text-center text-xs font-semibold text-neutral-300">
-                →
-              </div>
-              <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-                <div className="grid h-9 w-9 place-items-center rounded-xl bg-white shadow-xs">
-                  <PackageCheck className="h-4 w-4 text-neutral-700" />
-                </div>
-                <div className="mt-3 text-sm font-semibold text-neutral-900">Receiving</div>
-                <div className="mt-1 text-[10px] text-neutral-500">
-                  218 units received
-                </div>
-              </div>
-              <div className="pt-14 text-center text-xs font-semibold text-neutral-300">
-                →
-              </div>
-              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
-                <div className="grid h-9 w-9 place-items-center rounded-xl bg-white text-emerald-700 shadow-xs">
-                  <BadgeCheck className="h-4 w-4" />
-                </div>
-                <div className="mt-3 text-sm font-semibold text-emerald-950">Quality</div>
-                <div className="mt-1 text-[10px] text-neutral-600">
-                  Lot approved
-                </div>
-              </div>
-              <div className="pt-14 text-center text-xs font-semibold text-neutral-300">
-                →
-              </div>
-              <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-                <div className="grid h-9 w-9 place-items-center rounded-xl bg-white shadow-xs">
-                  <Factory className="h-4 w-4 text-neutral-700" />
-                </div>
-                <div className="mt-3 text-sm font-semibold text-neutral-900">Production</div>
-                <div className="mt-1 text-[10px] text-neutral-500">
-                  OF-00942 started
-                </div>
-              </div>
-            </div>
-            <div className="mt-6 grid grid-cols-5 gap-2">
-              <div className="rounded-xl bg-neutral-50 px-3 py-2.5 text-center text-[10px] font-medium text-neutral-500">
-                Stock updated
-              </div>
-              <div className="rounded-xl bg-neutral-50 px-3 py-2.5 text-center text-[10px] font-medium text-neutral-500">
-                Reservation created
-              </div>
-              <div className="rounded-xl bg-neutral-50 px-3 py-2.5 text-center text-[10px] font-medium text-neutral-500">
-                Cost recorded
-              </div>
-              <div className="rounded-xl bg-neutral-50 px-3 py-2.5 text-center text-[10px] font-medium text-neutral-500">
-                Audit trail
-              </div>
-              <div className="rounded-xl bg-neutral-50 px-3 py-2.5 text-center text-[10px] font-medium text-neutral-500">
-                Manager notified
-              </div>
-            </div>
-          </div>
-        </div>
+          <ol className="flex-1 space-y-0.5 p-2">
+            <AnimatePresence initial={false}>
+              {shown.map((e, i) => (
+                <motion.li
+                  key={i}
+                  layout
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.45, ease: EASE }}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px]"
+                >
+                  <e.icon className="size-3.5 shrink-0 text-fog" />
+                  <span className="min-w-0 flex-1 truncate">
+                    <span className="font-medium text-white">{e.who}</span> <span className="text-fog">{e.text}</span>
+                  </span>
+                  <span className="hidden shrink-0 rounded-md border border-white/8 px-1.5 py-0.5 font-mono text-[11px] text-white/70 sm:inline">
+                    {e.ref}
+                  </span>
+                  <span className="w-10 shrink-0 text-right font-mono text-[11px] text-white/30">{e.time}</span>
+                </motion.li>
+              ))}
+            </AnimatePresence>
+          </ol>
+        </Card>
       </div>
-    </section>
+    </Section>
   )
 }

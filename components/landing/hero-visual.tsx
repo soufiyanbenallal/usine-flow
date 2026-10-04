@@ -1,378 +1,276 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef } from 'react'
+import { motion, useScroll, useTransform } from 'motion/react'
 import {
-  Clock,
-  Cpu,
+  BadgeCheck,
+  BarChart3,
+  Bell,
+  Boxes,
+  CalendarDays,
+  CheckSquare,
+  ChevronsUpDown,
   Factory,
-  Layers,
-  Package
+  Home,
+  Package,
+  PackageSearch,
+  Search,
+  ShoppingCart,
+  Sparkles,
+  Truck,
+  Users,
+  Wallet,
+  Warehouse,
+  Wrench,
+  CheckCheck,
 } from 'lucide-react'
+import { LogoMark } from '@/components/logo'
+import { cn } from '@/lib/utils'
+import { CountUp, EASE, SAMPLE_NOTE } from './ui'
 
+const NAV: { group?: string; items: { icon: typeof Home; label: string; active?: boolean }[] }[] = [
+  { items: [{ icon: Home, label: 'Overview', active: true }] },
+  {
+    group: 'Operations',
+    items: [
+      { icon: Package, label: 'Catalog' },
+      { icon: Boxes, label: 'Inventory' },
+      { icon: Warehouse, label: 'Warehouse' },
+      { icon: ShoppingCart, label: 'Purchasing' },
+      { icon: Truck, label: 'Sales' },
+    ],
+  },
+  {
+    group: 'Industrial',
+    items: [
+      { icon: Factory, label: 'Production' },
+      { icon: BadgeCheck, label: 'Quality' },
+      { icon: Wrench, label: 'Maintenance' },
+      { icon: Users, label: 'Team' },
+    ],
+  },
+  {
+    group: 'Platform',
+    items: [
+      { icon: Wallet, label: 'Finance' },
+      { icon: BarChart3, label: 'Analytics' },
+      { icon: CheckSquare, label: 'Approvals' },
+      { icon: Sparkles, label: 'AI assistant' },
+    ],
+  },
+]
+
+const OUTPUT = [52, 61, 48, 70, 66, 84, 77, 58, 72, 80, 69, 88]
+
+const ORDERS = [
+  { id: 'OF-2026-00942', item: 'Table T-420', line: 'Assembly', qty: '412 / 500', status: ['In progress', 'pill-info'] },
+  { id: 'OF-2026-00941', item: 'Chair C-118', line: 'Cutting', qty: '1,200 / 1,200', status: ['Completed', 'pill-success'] },
+  { id: 'OF-2026-00943', item: 'Cabinet K-07', line: 'Finishing', qty: '0 / 260', status: ['Waiting QC', 'pill-warning'] },
+  { id: 'OF-2026-00944', item: 'Desk D-310', line: 'Painting', qty: '96 / 300', status: ['Blocked', 'pill-critical'] },
+]
+
+/** Product shot that mirrors the real admin: dark rail, inset light canvas. */
 export function HeroVisual() {
-  const [activeTab, setActiveTab] = useState<'orders' | 'inventory' | 'machines' | 'warehouse'>('orders')
+  const ref = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'start 20%'] })
+  const rotateX = useTransform(scrollYProgress, [0, 1], [14, 0])
+  const scale = useTransform(scrollYProgress, [0, 1], [0.94, 1])
 
   return (
-    <div className="relative mx-auto mt-14 w-full max-w-4xl">
-      {/* Subtle hairline outer glow & border */}
-      <div className="overflow-hidden rounded-xl border border-zinc-200/80 bg-white shadow-[0_4px_24px_rgba(0,0,0,0.04)] text-left">
-        {/* Compact Console Top Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-150/70 bg-zinc-50/60 px-4 py-2.5 text-xs">
-          <div className="flex items-center gap-2.5">
-            <span className="flex size-2 rounded-full bg-[#008060] animate-pulse" />
-            <div className="flex items-center gap-1.5 font-medium text-zinc-900">
-              <span>Casablanca Plant 01</span>
-              <span className="text-zinc-300">/</span>
-              <span className="text-zinc-500 font-normal">Shift A (Live)</span>
-            </div>
-            <span className="rounded bg-emerald-50 px-1.5 py-0.2 text-[9px] font-mono font-medium text-[#008060] border border-[#008060]/20">
-              OPERATIONAL
+    <div ref={ref} className="relative mt-16 perspective-[2000px] sm:mt-20">
+      <motion.div
+        initial={{ opacity: 0, y: 48 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1.2, ease: EASE, delay: 0.5 }}
+        style={{ rotateX, scale }}
+        className="origin-top"
+      >
+        <div className="overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0a] p-1.5 shadow-[0_40px_120px_-30px_rgba(0,0,0,.9)] sm:rounded-2xl sm:p-2">
+          <div className="flex">
+            <Rail />
+            <Canvas />
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
+function Rail() {
+  return (
+    <aside className="hidden w-[208px] shrink-0 flex-col px-2 py-2 text-[12px] lg:flex">
+      <div className="flex items-center gap-2 rounded-lg px-2 py-1.5">
+        <LogoMark className="h-5 w-6" size={24} />
+        <div className="min-w-0 flex-1">
+          <div className="truncate font-medium text-white">Atlas Manufacturing</div>
+        </div>
+        <ChevronsUpDown className="size-3.5 text-white/40" />
+      </div>
+      <div className="mx-1 mt-2 flex items-center gap-2 rounded-md border border-white/8 bg-white/4 px-2 py-1.5 text-white/40">
+        <Search className="size-3.5" />
+        <span className="flex-1">Search</span>
+        <kbd className="rounded bg-white/8 px-1 text-[10px] text-white/50">⌘K</kbd>
+      </div>
+      <nav className="mt-3 space-y-3">
+        {NAV.map((g, gi) => (
+          <div key={gi}>
+            {g.group && <div className="px-2 pb-1 text-[11px] font-medium text-white/30">{g.group}</div>}
+            {g.items.map((it) => (
+              <div
+                key={it.label}
+                className={cn(
+                  'flex items-center gap-2 rounded-md px-2 py-[5px]',
+                  it.active ? 'bg-white/10 text-white' : 'text-white/55',
+                )}
+              >
+                <it.icon className="size-3.5" />
+                {it.label}
+              </div>
+            ))}
+          </div>
+        ))}
+      </nav>
+    </aside>
+  )
+}
+
+function Canvas() {
+  return (
+    <div className="min-w-0 flex-1 overflow-hidden rounded-lg bg-[#f7f7f8] text-ink sm:rounded-xl">
+      {/* top bar */}
+      <div className="flex items-center justify-between border-b border-line bg-white px-4 py-2.5 sm:px-5">
+        <div className="flex items-center gap-2 text-[12px] text-slate">
+          <span>Atlas Manufacturing</span>
+          <span className="text-ink/25">/</span>
+          <span className="font-medium text-ink">Overview</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="hidden text-[11px] text-ink/35 sm:inline">{SAMPLE_NOTE}</span>
+          <div className="relative grid size-7 place-items-center rounded-md border border-line text-slate">
+            <Bell className="size-3.5" />
+            <span className="absolute right-1 top-1 size-1.5 rounded-full bg-flow-amber" />
+          </div>
+          <div className="grid size-7 place-items-center rounded-full bg-flow-teal text-[10px] font-semibold text-white">YB</div>
+        </div>
+      </div>
+
+      <div className="space-y-4 p-4 sm:p-5">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h3 className="text-[17px] font-semibold tracking-tight">Good afternoon, Youssef</h3>
+            <p className="mt-0.5 text-[12px] text-slate">Casablanca · Factory 01 · Shift B</p>
+          </div>
+          <div className="flex gap-2">
+            <span className="rounded-md border border-line bg-white px-2.5 py-1 text-[12px] font-medium shadow-[0_1px_0_rgba(0,0,0,.04)]">
+              Export
             </span>
-          </div>
-
-          <div className="flex items-center gap-3 text-[11px] font-mono text-zinc-500">
-            <span className="flex items-center gap-1">
-              <Clock className="size-3 text-zinc-400" />
-              11:42:08
-            </span>
-            <span className="text-zinc-300">|</span>
-            <span className="text-emerald-700 font-medium">99.9% Sync</span>
+            <span className="rounded-md bg-ink px-2.5 py-1 text-[12px] font-medium text-white">New order</span>
           </div>
         </div>
 
-        {/* 4 Compact Metric Tiles */}
-        <div className="grid grid-cols-2 divide-x divide-y sm:divide-y-0 sm:grid-cols-4 border-b border-zinc-150/70 bg-white">
-          <div className="p-3.5">
-            <div className="flex items-center justify-between text-[11px] text-zinc-500">
-              <span className="flex items-center gap-1">
-                <Factory className="size-3 text-zinc-400" /> Production
-              </span>
-              <span className="font-mono text-[10px] text-[#008060] font-medium">+2.4%</span>
+        {/* stat strip — same layout as the product's StatStrip */}
+        <div className="grid overflow-hidden rounded-xl border border-line bg-white sm:grid-cols-[auto_1fr]">
+          <div className="hidden items-center gap-2 border-r border-line px-4 text-[12px] sm:flex">
+            <CalendarDays className="size-3.5" /> 30 days
+          </div>
+          <dl className="grid grid-cols-2 divide-line sm:grid-cols-4 sm:divide-x">
+            {[
+              { l: 'OEE', v: <CountUp to={84.6} decimals={1} suffix="%" />, h: '+8.4%' },
+              { l: 'Stock value', v: <CountUp to={1.84} decimals={2} suffix="M" />, h: 'MAD' },
+              { l: 'Orders', v: <CountUp to={124} />, h: '42 open' },
+              { l: 'Machines up', v: <CountUp to={18} suffix=" / 20" />, h: '2 alerts' },
+            ].map((s) => (
+              <div key={s.l} className="px-4 py-3">
+                <dt className="text-[12px] font-semibold underline decoration-ink/25 decoration-dotted underline-offset-4">{s.l}</dt>
+                <dd className="mt-1 flex items-baseline gap-1.5 text-[12px]">
+                  <span className="text-[15px] font-medium">{s.v}</span>
+                  <span className="text-slate">{s.h}</span>
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+
+        <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
+          {/* chart */}
+          <div className="rounded-xl border border-line bg-white p-4">
+            <div className="flex items-center justify-between">
+              <div className="text-[13px] font-semibold">Production output</div>
+              <div className="text-[11px] text-slate">Units / day · last 12 days</div>
             </div>
-            <div className="mt-1 flex items-baseline gap-1.5">
-              <span className="font-mono text-xl font-bold tracking-tight text-zinc-950">84.6%</span>
-              <span className="text-[10px] text-zinc-400 font-mono">1,240 pcs/j</span>
-            </div>
-            <div className="mt-2 h-1 w-full bg-zinc-100 rounded-full overflow-hidden">
-              <div className="h-full bg-[#008060] rounded-full" style={{ width: '84.6%' }} />
+            <div className="mt-4 flex h-32 items-end gap-1.5">
+              {OUTPUT.map((h, i) => (
+                <div key={i} className="flex h-full flex-1 items-end">
+                  <motion.div
+                    initial={{ height: 0 }}
+                    animate={{ height: `${h}%` }}
+                    transition={{ delay: 1 + i * 0.04, duration: 0.9, ease: EASE }}
+                    className={cn('w-full rounded-[3px]', i === OUTPUT.length - 1 ? 'bg-flow-blue' : 'bg-ink/8')}
+                  />
+                </div>
+              ))}
             </div>
           </div>
 
-          <div className="p-3.5">
-            <div className="flex items-center justify-between text-[11px] text-zinc-500">
-              <span className="flex items-center gap-1">
-                <Package className="size-3 text-zinc-400" /> Inventory
-              </span>
-              <span className="font-mono text-[10px] text-zinc-500">1.84M MAD</span>
-            </div>
-            <div className="mt-1 flex items-baseline gap-1.5">
-              <span className="font-mono text-xl font-bold tracking-tight text-zinc-950">92.1%</span>
-              <span className="text-[10px] text-zinc-400">disponible</span>
-            </div>
-            <div className="mt-2 h-1 w-full bg-zinc-100 rounded-full overflow-hidden">
-              <div className="h-full bg-zinc-800 rounded-full" style={{ width: '92.1%' }} />
-            </div>
-          </div>
-
-          <div className="p-3.5">
-            <div className="flex items-center justify-between text-[11px] text-zinc-500">
-              <span className="flex items-center gap-1">
-                <Layers className="size-3 text-zinc-400" /> Orders
-              </span>
-              <span className="font-mono text-[10px] text-blue-600 font-medium">42 active</span>
-            </div>
-            <div className="mt-1 flex items-baseline gap-1.5">
-              <span className="font-mono text-xl font-bold tracking-tight text-zinc-950">124</span>
-              <span className="text-[10px] text-zinc-400 font-mono">82 planifiés</span>
-            </div>
-            <div className="mt-2 h-1 w-full bg-zinc-100 rounded-full overflow-hidden">
-              <div className="h-full bg-blue-600 rounded-full" style={{ width: '68%' }} />
-            </div>
-          </div>
-
-          <div className="p-3.5">
-            <div className="flex items-center justify-between text-[11px] text-zinc-500">
-              <span className="flex items-center gap-1">
-                <Cpu className="size-3 text-zinc-400" /> Machines
-              </span>
-              <span className="font-mono text-[10px] text-amber-600 font-medium">2 prév.</span>
-            </div>
-            <div className="mt-1 flex items-baseline gap-1.5">
-              <span className="font-mono text-xl font-bold tracking-tight text-zinc-950">18 / 20</span>
-              <span className="text-[10px] text-emerald-600">online</span>
-            </div>
-            <div className="mt-2 h-1 w-full bg-zinc-100 rounded-full overflow-hidden">
-              <div className="h-full bg-[#008060] rounded-full" style={{ width: '90%' }} />
+          {/* alerts */}
+          <div className="rounded-xl border border-line bg-white p-4">
+            <div className="text-[13px] font-semibold">Needs attention</div>
+            <div className="mt-3 divide-y divide-line">
+              {[
+                { i: PackageSearch, t: 'Packaging is low', m: 'Critical in 6 days', c: 'text-amber-600' },
+                { i: Wrench, t: 'Machine M-04 stopped', m: '18 min downtime', c: 'text-red-600' },
+                { i: CheckCheck, t: 'LOT-2026-00482 released', m: 'QC approved', c: 'text-emerald-600' },
+              ].map((a, idx) => (
+                <motion.div
+                  key={a.t}
+                  initial={{ opacity: 0, x: 8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 1.3 + idx * 0.15, duration: 0.6, ease: EASE }}
+                  className="flex items-center gap-2.5 py-2"
+                >
+                  <a.i className={cn('size-3.5 shrink-0', a.c)} />
+                  <span className="min-w-0 flex-1 truncate text-[12px] font-medium">{a.t}</span>
+                  <span className="shrink-0 text-[11px] text-slate">{a.m}</span>
+                </motion.div>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Compact Segmented View Switcher */}
-        <div className="flex items-center justify-between border-b border-zinc-150/70 bg-zinc-50/40 px-4 py-2 text-xs">
-          <div className="inline-flex rounded-md bg-zinc-200/60 p-0.5 font-medium">
-            <button
-              onClick={() => setActiveTab('orders')}
-              className={`rounded px-2.5 py-1 text-[11px] transition-all ${
-                activeTab === 'orders'
-                  ? 'bg-white font-semibold text-zinc-950 shadow-2xs'
-                  : 'text-zinc-600 hover:text-zinc-950'
-              }`}
-            >
-              Production Orders (OF)
-            </button>
-            <button
-              onClick={() => setActiveTab('inventory')}
-              className={`rounded px-2.5 py-1 text-[11px] transition-all ${
-                activeTab === 'inventory'
-                  ? 'bg-white font-semibold text-zinc-950 shadow-2xs'
-                  : 'text-zinc-600 hover:text-zinc-950'
-              }`}
-            >
-              Raw Materials Buffer
-            </button>
-            <button
-              onClick={() => setActiveTab('machines')}
-              className={`rounded px-2.5 py-1 text-[11px] transition-all ${
-                activeTab === 'machines'
-                  ? 'bg-white font-semibold text-zinc-950 shadow-2xs'
-                  : 'text-zinc-600 hover:text-zinc-950'
-              }`}
-            >
-              Machine Telemetry
-            </button>
-            <button
-              onClick={() => setActiveTab('warehouse')}
-              className={`rounded px-2.5 py-1 text-[11px] transition-all ${
-                activeTab === 'warehouse'
-                  ? 'bg-white font-semibold text-zinc-950 shadow-2xs'
-                  : 'text-zinc-600 hover:text-zinc-950'
-              }`}
-            >
-              Warehouse A (WMS)
-            </button>
-          </div>
-
-          <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-mono text-zinc-400">
-            <span>Filter: Active Line</span>
-          </div>
-        </div>
-
-        {/* Tab 1: Orders (Compact Table Rows) */}
-        {activeTab === 'orders' && (
-          <div className="divide-y divide-zinc-100 text-xs">
-            <div className="flex items-center justify-between px-4 py-2.5 hover:bg-zinc-50/50 transition-colors">
-              <div className="flex items-center gap-3 min-w-0">
-                <span className="font-mono text-[11px] font-semibold text-zinc-800 bg-zinc-100 px-1.5 py-0.5 rounded">
-                  OF-2026-00942
-                </span>
-                <span className="font-medium text-zinc-900 truncate">Table T-420 Ergonomique</span>
-                <span className="hidden sm:inline-block text-[11px] text-zinc-400">Line A-02</span>
-              </div>
-              <div className="flex items-center gap-4 shrink-0 font-mono">
-                <span className="text-zinc-500">412 / 500 pcs</span>
-                <div className="w-16 h-1.5 bg-zinc-100 rounded-full overflow-hidden hidden sm:block">
-                  <div className="h-full bg-[#008060] rounded-full" style={{ width: '82%' }} />
-                </div>
-                <span className="font-bold text-[#008060] w-9 text-right">82%</span>
-                <span className="rounded bg-emerald-50 px-1.5 py-0.2 text-[10px] font-medium text-[#008060] border border-[#008060]/20">
-                  En cours
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between px-4 py-2.5 hover:bg-zinc-50/50 transition-colors">
-              <div className="flex items-center gap-3 min-w-0">
-                <span className="font-mono text-[11px] font-semibold text-zinc-800 bg-zinc-100 px-1.5 py-0.5 rounded">
-                  OF-2026-00943
-                </span>
-                <span className="font-medium text-zinc-900 truncate">Châssis Mécano-Soudé Tubulaire</span>
-                <span className="hidden sm:inline-block text-[11px] text-zinc-400">Poste WC-03</span>
-              </div>
-              <div className="flex items-center gap-4 shrink-0 font-mono">
-                <span className="text-zinc-500">64 / 120 pcs</span>
-                <div className="w-16 h-1.5 bg-zinc-100 rounded-full overflow-hidden hidden sm:block">
-                  <div className="h-full bg-[#008060] rounded-full" style={{ width: '53%' }} />
-                </div>
-                <span className="font-bold text-zinc-800 w-9 text-right">53%</span>
-                <span className="rounded bg-emerald-50 px-1.5 py-0.2 text-[10px] font-medium text-[#008060] border border-[#008060]/20">
-                  En cours
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between px-4 py-2.5 hover:bg-zinc-50/50 transition-colors">
-              <div className="flex items-center gap-3 min-w-0">
-                <span className="font-mono text-[11px] font-semibold text-zinc-800 bg-zinc-100 px-1.5 py-0.5 rounded">
-                  OF-2026-00944
-                </span>
-                <span className="font-medium text-zinc-900 truncate">Profilé Aluminium Anodisé B-12</span>
-                <span className="hidden sm:inline-block text-[11px] text-zinc-400">Atelier Découpe</span>
-              </div>
-              <div className="flex items-center gap-4 shrink-0 font-mono">
-                <span className="text-zinc-500">18 / 250 pcs</span>
-                <div className="w-16 h-1.5 bg-zinc-100 rounded-full overflow-hidden hidden sm:block">
-                  <div className="h-full bg-amber-500 rounded-full" style={{ width: '7%' }} />
-                </div>
-                <span className="font-bold text-amber-700 w-9 text-right">7%</span>
-                <span className="rounded bg-amber-50 px-1.5 py-0.2 text-[10px] font-medium text-amber-800 border border-amber-200">
-                  Attente matière
-                </span>
-              </div>
+        {/* table */}
+        <div className="overflow-hidden rounded-xl border border-line bg-white">
+          <div className="flex items-center justify-between px-4 py-3">
+            <div className="text-[13px] font-semibold">Production orders</div>
+            <div className="flex gap-1 text-[11px]">
+              <span className="rounded-md bg-paper px-2 py-0.5 font-medium">All</span>
+              <span className="px-2 py-0.5 text-slate">In progress</span>
+              <span className="hidden px-2 py-0.5 text-slate sm:inline">Blocked</span>
             </div>
           </div>
-        )}
-
-        {/* Tab 2: Inventory */}
-        {activeTab === 'inventory' && (
-          <div className="divide-y divide-zinc-100 text-xs">
-            <div className="flex items-center justify-between px-4 py-2.5 hover:bg-zinc-50/50 transition-colors">
-              <div className="flex items-center gap-3">
-                <span className="font-mono text-[11px] text-zinc-500">RM-042</span>
-                <span className="font-medium text-zinc-900">Tôle Acier Laminé à Chaud 2.0mm</span>
-              </div>
-              <div className="flex items-center gap-4 font-mono">
-                <span className="text-zinc-500">Empl. A-03-12</span>
-                <span className="font-bold text-zinc-900">218 pcs dispo</span>
-                <span className="rounded bg-emerald-50 px-1.5 py-0.2 text-[10px] text-[#008060] font-medium border border-[#008060]/20">
-                  Stock nominal
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between px-4 py-2.5 hover:bg-zinc-50/50 transition-colors">
-              <div className="flex items-center gap-3">
-                <span className="font-mono text-[11px] text-zinc-500">RM-089</span>
-                <span className="font-medium text-zinc-900">Peinture Epoxy Poudreuse Ral 7016</span>
-              </div>
-              <div className="flex items-center gap-4 font-mono">
-                <span className="text-zinc-500">Zone B-01</span>
-                <span className="font-bold text-zinc-900">62 L dispo</span>
-                <span className="rounded bg-emerald-50 px-1.5 py-0.2 text-[10px] text-[#008060] font-medium border border-[#008060]/20">
-                  Stock nominal
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between px-4 py-2.5 bg-amber-50/30 hover:bg-amber-50/50 transition-colors">
-              <div className="flex items-center gap-3">
-                <span className="font-mono text-[11px] text-amber-700">RM-114</span>
-                <span className="font-medium text-zinc-900">Cartons Conditionnement Export</span>
-              </div>
-              <div className="flex items-center gap-4 font-mono">
-                <span className="text-zinc-500">Quai D</span>
-                <span className="font-bold text-amber-700">18 pcs (Seuil 50)</span>
-                <span className="rounded bg-amber-50 px-1.5 py-0.2 text-[10px] text-amber-800 font-medium border border-amber-200">
-                  Low stock
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Tab 3: Machines */}
-        {activeTab === 'machines' && (
-          <div className="divide-y divide-zinc-100 text-xs">
-            <div className="flex items-center justify-between px-4 py-2.5 hover:bg-zinc-50/50 transition-colors">
-              <div className="flex items-center gap-3">
-                <span className="flex size-1.5 rounded-full bg-[#008060]" />
-                <span className="font-bold text-zinc-900">Machine M-04</span>
-                <span className="text-zinc-500">Fraiseuse CNC 5-Axes</span>
-              </div>
-              <div className="flex items-center gap-4 font-mono">
-                <span className="text-zinc-500">Runtime: 07h 42m</span>
-                <span className="text-zinc-500">Temp: 44°C</span>
-                <span className="rounded bg-emerald-50 px-1.5 py-0.2 text-[10px] text-[#008060] font-medium border border-[#008060]/20">
-                  Next Maint: 48h
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between px-4 py-2.5 hover:bg-zinc-50/50 transition-colors">
-              <div className="flex items-center gap-3">
-                <span className="flex size-1.5 rounded-full bg-[#008060]" />
-                <span className="font-bold text-zinc-900">Laser L-01</span>
-                <span className="text-zinc-500">Découpe Fibre 4kW</span>
-              </div>
-              <div className="flex items-center gap-4 font-mono">
-                <span className="text-zinc-500">Runtime: 08h 10m</span>
-                <span className="text-zinc-500">Temp: 38°C</span>
-                <span className="rounded bg-emerald-50 px-1.5 py-0.2 text-[10px] text-[#008060] font-medium border border-[#008060]/20">
-                  Next Maint: 110h
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between px-4 py-2.5 hover:bg-zinc-50/50 transition-colors">
-              <div className="flex items-center gap-3">
-                <span className="flex size-1.5 rounded-full bg-amber-500" />
-                <span className="font-bold text-zinc-900">Presse P-02</span>
-                <span className="text-zinc-500">Plieuse CNC 160T</span>
-              </div>
-              <div className="flex items-center gap-4 font-mono">
-                <span className="text-zinc-500">Arrêt 18 min (Outillage)</span>
-                <span className="text-zinc-500">MTBF: 142h</span>
-                <span className="rounded bg-amber-50 px-1.5 py-0.2 text-[10px] text-amber-800 font-medium border border-amber-200">
-                  Entretien J-2
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Tab 4: Warehouse */}
-        {activeTab === 'warehouse' && (
-          <div className="divide-y divide-zinc-100 text-xs">
-            <div className="flex items-center justify-between px-4 py-2.5 hover:bg-zinc-50/50 transition-colors">
-              <div className="flex items-center gap-3">
-                <span className="font-mono text-zinc-800 font-semibold bg-zinc-100 px-1.5 py-0.5 rounded">
-                  ZONE A
-                </span>
-                <span className="font-medium text-zinc-900">Racks Lourds Palettes (Niveaux 1 à 4)</span>
-              </div>
-              <div className="flex items-center gap-4 font-mono">
-                <span className="text-zinc-500">142 bacs</span>
-                <span className="font-bold text-zinc-900">84% plein</span>
-                <span className="text-emerald-700 font-medium">Picking: 24</span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between px-4 py-2.5 hover:bg-zinc-50/50 transition-colors">
-              <div className="flex items-center gap-3">
-                <span className="font-mono text-zinc-800 font-semibold bg-zinc-100 px-1.5 py-0.5 rounded">
-                  ZONE B
-                </span>
-                <span className="font-medium text-zinc-900">Matières Premières & Châssis Bruts</span>
-              </div>
-              <div className="flex items-center gap-4 font-mono">
-                <span className="text-zinc-500">88 bacs</span>
-                <span className="font-bold text-zinc-900">92% plein</span>
-                <span className="text-emerald-700 font-medium">Receiving: 12</span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between px-4 py-2.5 hover:bg-zinc-50/50 transition-colors">
-              <div className="flex items-center gap-3">
-                <span className="font-mono text-zinc-800 font-semibold bg-zinc-100 px-1.5 py-0.5 rounded">
-                  ZONE D
-                </span>
-                <span className="font-medium text-zinc-900">Quai d&apos;Expédition & Préparation</span>
-              </div>
-              <div className="flex items-center gap-4 font-mono">
-                <span className="text-zinc-500">32 emplacements</span>
-                <span className="font-bold text-[#008060]">8 expéditions prêtes</span>
-                <span className="text-blue-600 font-medium">Dispatch: 8</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Console footer strip */}
-        <div className="flex items-center justify-between border-t border-zinc-150/70 bg-zinc-50/50 px-4 py-2 text-[11px] text-zinc-500">
-          <div className="flex items-center gap-2">
-            <span className="size-1.5 rounded-full bg-emerald-500" />
-            <span>Capteurs IoT & Scanners floor synchronisés</span>
-          </div>
-          <span className="font-mono text-[10px] text-zinc-400">Industrial OS Kernel 2026.4</span>
+          <table className="w-full text-left text-[12px]">
+            <thead className="border-y border-line bg-paper/60 text-[11px] text-slate">
+              <tr>
+                <th className="px-4 py-2 font-medium">Order</th>
+                <th className="px-4 py-2 font-medium">Item</th>
+                <th className="hidden px-4 py-2 font-medium md:table-cell">Line</th>
+                <th className="hidden px-4 py-2 font-medium sm:table-cell">Quantity</th>
+                <th className="px-4 py-2 font-medium">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line">
+              {ORDERS.map((o) => (
+                <tr key={o.id}>
+                  <td className="px-4 py-2.5 font-mono text-[11px] font-medium">{o.id}</td>
+                  <td className="px-4 py-2.5">{o.item}</td>
+                  <td className="hidden px-4 py-2.5 text-slate md:table-cell">{o.line}</td>
+                  <td className="hidden px-4 py-2.5 tabular-nums text-slate sm:table-cell">{o.qty}</td>
+                  <td className="px-4 py-2.5">
+                    <span className={cn('pill text-[11px]', o.status[1])}>{o.status[0]}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

@@ -126,78 +126,38 @@
   @apply after:border-[0.5px] after:border-white/5 after:shadow-[inset_0_2px_5px_rgba(255,255,255,0.025),inset_0_-7px_14px_rgba(0,0,0,0.08)] after:absolute after:inset-0 after:rounded-md after:pointer-events-none;
 }
 
-/* Industrial OS Landing Page Design Utilities */
-.mesh {
-  background-image:
-    linear-gradient(rgba(0, 0, 0, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 0, 0, 0.035) 1px, transparent 1px);
-  background-size: 32px 32px;
+/*
+ * Landing design system — flat ink (dark) and paper (light) bands, hairline borders,
+ * compact UI. Brand accents come from the UsineFlow logo and are used sparingly.
+ */
+@theme {
+  --color-ink: #08090a;
+  --color-ink-2: #0f1012;
+  --color-ink-3: #16171a;
+  --color-ink-line: #1f2023;
+  --color-fog: #8a8f98;
+  --color-paper: #f7f7f8;
+  --color-line: #e6e6e9;
+  --color-slate: #6b6b73;
+  --color-flow-teal: #0f7a7c;
+  --color-flow-blue: #1a97c9;
+  --color-flow-amber: #f8c400;
 }
-.shadow-soft {
-  box-shadow:
-    0 16px 50px rgba(20, 24, 22, 0.09),
-    0 2px 10px rgba(20, 24, 22, 0.04);
+
+.lp-root {
+  font-feature-settings: "cv01", "ss03";
 }
-.shadow-card {
-  box-shadow: 0 10px 30px rgba(20, 24, 22, 0.06);
+.lp-marquee {
+  animation: lpMarquee 48s linear infinite;
 }
-.fade-up {
-  opacity: 0;
-  transform: translateY(16px);
-  animation: fadeUp 0.7s ease forwards;
-}
-.delay-1 {
-  animation-delay: 0.08s;
-}
-.delay-2 {
-  animation-delay: 0.16s;
-}
-.delay-3 {
-  animation-delay: 0.24s;
-}
-.delay-4 {
-  animation-delay: 0.32s;
-}
-@keyframes fadeUp {
+@keyframes lpMarquee {
   to {
-    opacity: 1;
-    transform: none;
+    transform: translateX(-50%);
   }
 }
-@keyframes pulseSoft {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.45;
-  }
-}
-.pulse-soft {
-  animation: pulseSoft 2.6s ease-in-out infinite;
-}
-.float-a {
-  animation: floatA 6s ease-in-out infinite;
-}
-.float-b {
-  animation: floatB 7s ease-in-out infinite;
-}
-@keyframes floatA {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-7px);
-  }
-}
-@keyframes floatB {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(7px);
+@media (prefers-reduced-motion: reduce) {
+  .lp-marquee {
+    animation: none;
   }
 }
 

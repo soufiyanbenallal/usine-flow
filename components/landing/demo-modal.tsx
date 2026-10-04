@@ -46,11 +46,11 @@ export function DemoModal({ isOpen, onClose }: DemoModalProps) {
       />
 
       {/* Modal Dialog Card */}
-      <div className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/10">
+      <div className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white text-ink shadow-2xl ring-1 ring-black/10">
         {/* Header bar */}
         <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
           <div className="flex items-center gap-2">
-            <span className="grid size-7 place-items-center rounded-lg bg-[#008060]/10 text-[#008060]">
+            <span className="grid size-7 place-items-center rounded-lg bg-[#0f7a7c]/10 text-[#0f7a7c]">
               <Calendar className="size-4" />
             </span>
             <span className="text-sm font-semibold text-zinc-900">Demander une démonstration</span>
@@ -66,7 +66,7 @@ export function DemoModal({ isOpen, onClose }: DemoModalProps) {
 
         {submitted ? (
           <div className="p-8 text-center">
-            <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-[#008060]/10 text-[#008060] mb-4">
+            <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-[#0f7a7c]/10 text-[#0f7a7c] mb-4">
               <CheckCircle2 className="size-8" />
             </div>
             <h3 className="text-xl font-bold text-zinc-900">Demande confirmée</h3>
@@ -81,7 +81,7 @@ export function DemoModal({ isOpen, onClose }: DemoModalProps) {
             </div>
             <button
               onClick={handleReset}
-              className="mt-6 inline-flex w-full items-center justify-center rounded-lg bg-[#008060] py-2.5 text-sm font-medium text-white hover:bg-[#006e52] transition-colors"
+              className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-ink py-2.5 text-sm font-medium text-white hover:bg-ink-3 transition-colors"
             >
               Fermer
             </button>
@@ -90,7 +90,7 @@ export function DemoModal({ isOpen, onClose }: DemoModalProps) {
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             <div>
               <h2 id="demo-modal-title" className="text-lg font-bold text-zinc-900">
-                Découvrez Industrial OS en action
+                Découvrez UsineFlow en action
               </h2>
               <p className="mt-1 text-xs text-zinc-500">
                 30 minutes avec un ingénieur d&apos;application pour évaluer l&apos;adéquation avec votre usine ou entrepôt.
@@ -110,7 +110,7 @@ export function DemoModal({ isOpen, onClose }: DemoModalProps) {
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     placeholder="Karim Bennani"
-                    className="w-full rounded-lg border border-zinc-200 bg-white pl-9 pr-3 py-2 text-xs text-zinc-900 placeholder:text-zinc-400 focus:border-[#008060] focus:ring-1 focus:ring-[#008060] outline-none"
+                    className="w-full rounded-lg border border-zinc-200 bg-white pl-9 pr-3 py-2 text-xs text-zinc-900 placeholder:text-zinc-400 focus:border-[#0f7a7c] focus:ring-1 focus:ring-[#0f7a7c] outline-none"
                   />
                 </div>
               </div>
@@ -126,7 +126,7 @@ export function DemoModal({ isOpen, onClose }: DemoModalProps) {
                     value={formData.company}
                     onChange={(e) => setFormData({ ...formData, company: e.target.value })}
                     placeholder="Atlas Métal Industries"
-                    className="w-full rounded-lg border border-zinc-200 bg-white pl-9 pr-3 py-2 text-xs text-zinc-900 placeholder:text-zinc-400 focus:border-[#008060] focus:ring-1 focus:ring-[#008060] outline-none"
+                    className="w-full rounded-lg border border-zinc-200 bg-white pl-9 pr-3 py-2 text-xs text-zinc-900 placeholder:text-zinc-400 focus:border-[#0f7a7c] focus:ring-1 focus:ring-[#0f7a7c] outline-none"
                   />
                 </div>
               </div>
@@ -145,7 +145,7 @@ export function DemoModal({ isOpen, onClose }: DemoModalProps) {
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     placeholder="karim@atlasmetal.ma"
-                    className="w-full rounded-lg border border-zinc-200 bg-white pl-9 pr-3 py-2 text-xs text-zinc-900 placeholder:text-zinc-400 focus:border-[#008060] focus:ring-1 focus:ring-[#008060] outline-none"
+                    className="w-full rounded-lg border border-zinc-200 bg-white pl-9 pr-3 py-2 text-xs text-zinc-900 placeholder:text-zinc-400 focus:border-[#0f7a7c] focus:ring-1 focus:ring-[#0f7a7c] outline-none"
                   />
                 </div>
               </div>
@@ -161,7 +161,7 @@ export function DemoModal({ isOpen, onClose }: DemoModalProps) {
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     placeholder="+212 6 00 00 00 00"
-                    className="w-full rounded-lg border border-zinc-200 bg-white pl-9 pr-3 py-2 text-xs text-zinc-900 placeholder:text-zinc-400 focus:border-[#008060] focus:ring-1 focus:ring-[#008060] outline-none"
+                    className="w-full rounded-lg border border-zinc-200 bg-white pl-9 pr-3 py-2 text-xs text-zinc-900 placeholder:text-zinc-400 focus:border-[#0f7a7c] focus:ring-1 focus:ring-[#0f7a7c] outline-none"
                   />
                 </div>
               </div>
@@ -175,7 +175,7 @@ export function DemoModal({ isOpen, onClose }: DemoModalProps) {
                 <select
                   value={formData.size}
                   onChange={(e) => setFormData({ ...formData, size: e.target.value })}
-                  className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-900 focus:border-[#008060] focus:ring-1 focus:ring-[#008060] outline-none"
+                  className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-900 focus:border-[#0f7a7c] focus:ring-1 focus:ring-[#0f7a7c] outline-none"
                 >
                   <option value="1-10">1 à 10 personnes (Atelier)</option>
                   <option value="10-50">10 à 50 personnes (PME Usine)</option>
@@ -190,7 +190,7 @@ export function DemoModal({ isOpen, onClose }: DemoModalProps) {
                 <select
                   value={formData.primaryInterest}
                   onChange={(e) => setFormData({ ...formData, primaryInterest: e.target.value })}
-                  className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-900 focus:border-[#008060] focus:ring-1 focus:ring-[#008060] outline-none"
+                  className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-900 focus:border-[#0f7a7c] focus:ring-1 focus:ring-[#0f7a7c] outline-none"
                 >
                   <option value="production">Production & Nomenclatures (BOM)</option>
                   <option value="warehouse">Stocks, Bacs & WMS</option>
@@ -204,7 +204,7 @@ export function DemoModal({ isOpen, onClose }: DemoModalProps) {
             <div className="pt-2">
               <button
                 type="submit"
-                className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[#008060] py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-[#006e52] transition-colors"
+                className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-ink py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-ink-3 transition-colors"
               >
                 Planifier ma démonstration gratuite
                 <ArrowRight className="size-3.5" />
@@ -212,7 +212,7 @@ export function DemoModal({ isOpen, onClose }: DemoModalProps) {
             </div>
 
             <div className="flex items-center justify-center gap-1.5 text-[11px] text-zinc-400 pt-1">
-              <ShieldCheck className="size-3.5 text-[#008060]" />
+              <ShieldCheck className="size-3.5 text-[#0f7a7c]" />
               <span>Données strictement confidentielles • Sans engagement commercial</span>
             </div>
           </form>

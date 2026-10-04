@@ -1,147 +1,160 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Factory, Menu, X } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
+import { Menu, X } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { BrandLogo } from './brand'
+import { Button, Container, EASE, ToneProvider, type Tone } from './ui'
+
+const NAV = [
+  { href: '#platform', label: 'Platform' },
+  { href: '#operations', label: 'Operations' },
+  { href: '#traceability', label: 'Traceability' },
+  { href: '#roles', label: 'Teams' },
+  { href: '#morocco', label: 'Morocco' },
+]
 
 interface HeaderProps {
   onOpenDemo: () => void
 }
 
+/** Sticky header that adopts the tone of whichever band is underneath it. */
 export function Header({ onOpenDemo }: HeaderProps) {
   const [scrolled, setScrolled] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [tone, setTone] = useState<Tone>('dark')
+  const [open, setOpen] = useState(false)
 
   useEffect(() => {
-    const handleScroll = () => {
+    const update = () => {
       setScrolled(window.scrollY > 8)
+      const probe = 28 // vertical centre of the 56px bar
+      for (const band of document.querySelectorAll<HTMLElement>('[data-tone]')) {
+        const r = band.getBoundingClientRect()
+        if (r.top <= probe && r.bottom > probe) {
+          setTone(band.dataset.tone === 'light' ? 'light' : 'dark')
+          break
+        }
+      }
     }
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
+    update()
+    window.addEventListener('scroll', update, { passive: true })
+    window.addEventListener('resize', update)
+    return () => {
+      window.removeEventListener('scroll', update)
+      window.removeEventListener('resize', update)
+    }
   }, [])
 
+  const dark = tone === 'dark'
+
   return (
-    <header
-      id="site-header"
-      className={`fixed inset-x-0 top-0 z-50 border-b transition-all duration-300 ${
-        scrolled
-          ? 'border-neutral-200 bg-[#f7f7f5]/85 backdrop-blur-xl shadow-sm'
-          : 'border-transparent bg-transparent'
-      }`}
-    >
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8">
-        <Link
-          href="#top"
-          className="flex items-center gap-2.5"
-          aria-label="Industrial OS home"
-        >
-          <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-[#008060] text-white shadow-sm">
-            <Factory className="h-[17px] w-[17px]" />
-          </span>
-          <span className="text-[15px] font-semibold tracking-[-.02em] text-neutral-950">
-            Industrial OS
-          </span>
-        </Link>
-
-        <nav className="hidden items-center gap-8 text-[13px] font-medium text-neutral-600 md:flex">
-          <a className="transition hover:text-neutral-950" href="#platform">
-            Platform
-          </a>
-          <a className="transition hover:text-neutral-950" href="#solutions">
-            Solutions
-          </a>
-          <a className="transition hover:text-neutral-950" href="#operations">
-            Operations
-          </a>
-          <a className="transition hover:text-neutral-950" href="#pricing">
-            Pricing
-          </a>
-        </nav>
-
-        <div className="hidden items-center gap-3 md:flex">
-          <Link
-            href="/login"
-            className="rounded-lg px-3.5 py-2 text-[13px] font-medium text-neutral-700 transition hover:bg-neutral-100"
-          >
-            Sign in
+    <ToneProvider tone={tone}>
+      <header
+        className={cn(
+          'fixed inset-x-0 top-0 z-50 border-b transition-[background-color,border-color,color] duration-300',
+          scrolled || open
+            ? dark
+              ? 'border-white/6 bg-ink/80 text-white backdrop-blur-xl'
+              : 'border-line bg-paper/80 text-ink backdrop-blur-xl'
+            : 'border-transparent bg-transparent text-white',
+        )}
+      >
+        <Container className="flex h-14 items-center justify-between">
+          <Link href="#top" aria-label="UsineFlow home" className="relative h-6 w-[103px] shrink-0">
+            <span className={cn('absolute inset-0 transition-opacity duration-300', dark ? 'opacity-100' : 'opacity-0')}>
+              <BrandLogo tone="dark" priority />
+            </span>
+            <span className={cn('absolute inset-0 transition-opacity duration-300', dark ? 'opacity-0' : 'opacity-100')}>
+              <BrandLogo tone="light" priority />
+            </span>
           </Link>
+
+          <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center md:flex">
+            {NAV.map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  'rounded-full px-3 py-1.5 text-[13px] transition-colors',
+                  dark ? 'text-fog hover:text-white' : 'text-slate hover:text-ink',
+                )}
+              >
+                {item.label}
+              </a>
+            ))}
+          </nav>
+
+          <div className="hidden items-center gap-1 md:flex">
+            <Link
+              href="/login"
+              className={cn(
+                'px-3 text-[13px] transition-colors',
+                dark ? 'text-fog hover:text-white' : 'text-slate hover:text-ink',
+              )}
+            >
+              Sign in
+            </Link>
+            <Button variant="secondary" onClick={onOpenDemo} className="h-8 px-3.5">
+              Book a demo
+            </Button>
+            <Button href="/signup" className="ml-1 h-8 px-3.5">
+              Start free
+            </Button>
+          </div>
+
           <button
             type="button"
-            onClick={onOpenDemo}
-            className="rounded-lg border border-neutral-200 bg-white px-4 py-2 text-[13px] font-semibold text-neutral-800 shadow-sm transition hover:-translate-y-px hover:border-neutral-300 cursor-pointer"
+            onClick={() => setOpen((v) => !v)}
+            className="grid size-9 cursor-pointer place-items-center rounded-full md:hidden"
+            aria-label={open ? 'Close menu' : 'Open menu'}
+            aria-expanded={open}
           >
-            Book a demo
+            {open ? <X className="size-5" /> : <Menu className="size-5" />}
           </button>
-          <Link
-            href="/login"
-            className="rounded-lg bg-[#111513] px-4 py-2 text-[13px] font-semibold text-white shadow-sm transition hover:-translate-y-px hover:bg-black"
-          >
-            Start free
-          </Link>
-        </div>
+        </Container>
 
-        <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="grid h-10 w-10 place-items-center rounded-lg border border-neutral-200 bg-white md:hidden"
-          aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
-        >
-          {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
-      </div>
-
-      {mobileMenuOpen && (
-        <div className="border-t border-neutral-200 bg-[#f7f7f5]/95 px-5 py-4 backdrop-blur-xl md:hidden">
-          <div className="grid gap-2 text-sm font-medium">
-            <a
-              href="#platform"
-              onClick={() => setMobileMenuOpen(false)}
-              className="rounded-lg px-3 py-2 hover:bg-white"
+        <AnimatePresence>
+          {open && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: EASE }}
+              className="overflow-hidden md:hidden"
             >
-              Platform
-            </a>
-            <a
-              href="#solutions"
-              onClick={() => setMobileMenuOpen(false)}
-              className="rounded-lg px-3 py-2 hover:bg-white"
-            >
-              Solutions
-            </a>
-            <a
-              href="#operations"
-              onClick={() => setMobileMenuOpen(false)}
-              className="rounded-lg px-3 py-2 hover:bg-white"
-            >
-              Operations
-            </a>
-            <a
-              href="#pricing"
-              onClick={() => setMobileMenuOpen(false)}
-              className="rounded-lg px-3 py-2 hover:bg-white"
-            >
-              Pricing
-            </a>
-            <div className="pt-2 grid gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileMenuOpen(false)
-                  onOpenDemo()
-                }}
-                className="rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-center text-sm font-semibold text-neutral-800"
-              >
-                Book a demo
-              </button>
-              <Link
-                href="/login"
-                onClick={() => setMobileMenuOpen(false)}
-                className="rounded-lg bg-[#111513] px-3 py-2.5 text-center text-white text-sm font-semibold"
-              >
-                Start free
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
-    </header>
+              <Container className="grid gap-1 pb-6 pt-2">
+                {NAV.map((item) => (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setOpen(false)}
+                    className={cn('rounded-lg px-2 py-2.5 text-[15px]', dark ? 'text-white/80' : 'text-ink/80')}
+                  >
+                    {item.label}
+                  </a>
+                ))}
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setOpen(false)
+                      onOpenDemo()
+                    }}
+                  >
+                    Book a demo
+                  </Button>
+                  <Button href="/signup">Start free</Button>
+                </div>
+                <Link href="/login" className={cn('mt-2 py-2 text-center text-[13px]', dark ? 'text-fog' : 'text-slate')}>
+                  Sign in
+                </Link>
+              </Container>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </header>
+    </ToneProvider>
   )
 }

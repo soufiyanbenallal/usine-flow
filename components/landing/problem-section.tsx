@@ -1,60 +1,74 @@
-import { FileSpreadsheet, MessageCircle, FileText, Orbit } from 'lucide-react'
+'use client'
+
+import { useRef } from 'react'
+import { motion, useScroll, useTransform, type MotionValue } from 'motion/react'
+import { FileSpreadsheet, FileText, MessageCircle, Workflow } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Label, Reveal, Section } from './ui'
+
+const STATEMENT =
+  "Your factory shouldn't run on disconnected spreadsheets. When inventory, purchasing, production and quality live in different places, every decision gets slower. UsineFlow turns those disconnected steps into one traceable flow."
+
+const BEFORE = [
+  { icon: FileSpreadsheet, name: 'Excel', pain: 'Manual stock files, duplicate versions, no clear ownership.' },
+  { icon: MessageCircle, name: 'WhatsApp', pain: 'Approvals and production updates buried in conversations.' },
+  { icon: FileText, name: 'Paper forms', pain: 'Receiving, maintenance and QC checks are hard to reconcile.' },
+]
+
+function Word({ children, progress, range }: { children: string; progress: MotionValue<number>; range: [number, number] }) {
+  const opacity = useTransform(progress, range, [0.16, 1])
+  return (
+    <motion.span style={{ opacity }} className="inline">
+      {children}{' '}
+    </motion.span>
+  )
+}
 
 export function ProblemSection() {
+  const ref = useRef<HTMLParagraphElement>(null)
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start 85%', 'end 55%'] })
+  const words = STATEMENT.split(' ')
+
   return (
-    <section className="py-24 sm:py-32">
-      <div className="mx-auto grid max-w-7xl gap-12 px-5 lg:grid-cols-[.8fr_1.2fr] lg:items-center lg:px-8">
-        <div>
-          <div className="text-xs font-bold uppercase tracking-[.14em] text-[#008060]">
-            The old way
+    <Section tone="light">
+      <Label>The old way</Label>
+      <p
+        ref={ref}
+        className="mt-8 max-w-[24ch] text-[2rem] font-medium leading-[1.18] tracking-[-0.03em] sm:max-w-[30ch] sm:text-[2.75rem] lg:text-[3.25rem]"
+      >
+        {words.map((w, i) => (
+          <Word key={i} progress={scrollYProgress} range={[i / words.length, (i + 1) / words.length]}>
+            {w}
+          </Word>
+        ))}
+      </p>
+
+      <div className="mt-24 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {BEFORE.map((b, i) => (
+          <Reveal key={b.name} delay={i * 0.06}>
+            <div className="h-full rounded-2xl border border-line bg-white p-5">
+              <div className="flex items-center justify-between">
+                <b.icon className="size-4 text-slate" />
+                <span className="text-[11px] font-medium text-ink/35">Before</span>
+              </div>
+              <div className="mt-8 text-[14px] font-medium">{b.name}</div>
+              <p className="mt-1 text-[13px] leading-5 text-slate">{b.pain}</p>
+            </div>
+          </Reveal>
+        ))}
+        <Reveal delay={0.18}>
+          <div className={cn('h-full rounded-2xl bg-ink p-5 text-white')}>
+            <div className="flex items-center justify-between">
+              <Workflow className="size-4 text-flow-blue" />
+              <span className="text-[11px] font-medium text-fog">With UsineFlow</span>
+            </div>
+            <div className="mt-8 text-[14px] font-medium">One connected system</div>
+            <p className="mt-1 text-[13px] leading-5 text-fog">
+              Every operational event updates the right people, stock and history.
+            </p>
           </div>
-          <h2 className="mt-4 max-w-xl text-4xl font-semibold tracking-[-.045em] text-neutral-950 sm:text-5xl">
-            Your factory shouldn&apos;t run on disconnected spreadsheets.
-          </h2>
-          <p className="mt-5 max-w-lg text-[16px] leading-7 text-neutral-600">
-            When inventory, purchasing, production and quality live in
-            different places, every decision gets slower. Industrial OS turns
-            those disconnected steps into one traceable flow.
-          </p>
-        </div>
-        <div className="rounded-[26px] border border-neutral-200 bg-white p-5 shadow-card sm:p-7">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-2xl border border-red-100 bg-red-50/60 p-4">
-              <div className="flex items-center gap-2 text-xs font-semibold text-red-800">
-                <FileSpreadsheet className="h-4 w-4" /> Excel
-              </div>
-              <div className="mt-3 text-[11px] leading-5 text-red-900/60">
-                Manual stock files, duplicate versions, no clear ownership.
-              </div>
-            </div>
-            <div className="rounded-2xl border border-amber-100 bg-amber-50/60 p-4">
-              <div className="flex items-center gap-2 text-xs font-semibold text-amber-800">
-                <MessageCircle className="h-4 w-4" /> WhatsApp
-              </div>
-              <div className="mt-3 text-[11px] leading-5 text-amber-900/60">
-                Approvals and production updates buried in conversations.
-              </div>
-            </div>
-            <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-              <div className="flex items-center gap-2 text-xs font-semibold text-neutral-800">
-                <FileText className="h-4 w-4" /> Paper forms
-              </div>
-              <div className="mt-3 text-[11px] leading-5 text-neutral-500">
-                Receiving, maintenance and QC checks are hard to reconcile.
-              </div>
-            </div>
-            <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4">
-              <div className="flex items-center gap-2 text-xs font-semibold text-emerald-800">
-                <Orbit className="h-4 w-4" /> One connected system
-              </div>
-              <div className="mt-3 text-[11px] leading-5 text-emerald-900/70">
-                Every operational event updates the right people, stock and
-                history.
-              </div>
-            </div>
-          </div>
-        </div>
+        </Reveal>
       </div>
-    </section>
+    </Section>
   )
 }

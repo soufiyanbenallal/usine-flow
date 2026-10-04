@@ -1,95 +1,141 @@
-import { ArrowDown } from 'lucide-react'
+'use client'
+
+import { useEffect, useRef, useState } from 'react'
+import { motion, useInView, useReducedMotion } from 'motion/react'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Card, Dim, EASE, Reveal, Section, SectionHeader } from './ui'
+
+const NODES = [
+  { kind: 'Supplier lot', id: 'LOT-SS-2048', meta: 'Atlas Steel · 218 pcs' },
+  { kind: 'Production order', id: 'OF-2026-00942', meta: 'Table T-420 · 500 units' },
+  { kind: 'Finished batch', id: 'LOT-T420-82', meta: 'QC passed · 496 released' },
+  { kind: 'Customer delivery', id: 'DN-2026-4418', meta: 'Delivered · 04 Oct' },
+]
+
+const TAGS = ['Lots', 'Serials', 'QC', 'Quarantine', 'Recalls', 'CAPA']
+
+type Dir = 'backward' | 'forward'
 
 export function Traceability() {
+  const [dir, setDir] = useState<Dir>('backward')
+  const [rawStep, setStep] = useState(0)
+  const ref = useRef<HTMLDivElement>(null)
+  const inView = useInView(ref, { once: true, margin: '-120px' })
+  const reduce = useReducedMotion()
+
+  useEffect(() => {
+    if (!inView || reduce || rawStep >= NODES.length) return
+    const id = setTimeout(() => setStep((s) => s + 1), rawStep === 0 ? 300 : 650)
+    return () => clearTimeout(id)
+  }, [inView, reduce, rawStep])
+
+  const step = reduce ? NODES.length : rawStep
+
+  const order = dir === 'forward' ? [0, 1, 2, 3] : [3, 2, 1, 0]
+  const lit = (i: number) => order.indexOf(i) < step
+
+  const switchDir = (d: Dir) => {
+    if (d === dir) return
+    setDir(d)
+    setStep(0)
+  }
+
   return (
-    <section className="py-24 sm:py-32">
-      <div className="mx-auto max-w-7xl px-5 lg:px-8">
-        <div className="grid gap-12 lg:grid-cols-[.75fr_1.25fr] lg:items-center">
-          <div>
-            <div className="text-xs font-bold uppercase tracking-[.14em] text-[#008060]">
-              Traceability
+    <Section id="traceability" tone="light">
+      <SectionHeader
+        label="Traceability"
+        title={
+          <>
+            Every batch. Every component. <Dim>Every result.</Dim>
+          </>
+        }
+        description="Follow material genealogy forward to the customer or backward to the supplier in a few clicks."
+      />
+
+      <Reveal className="mt-16 lg:mt-20">
+        <Card className="p-4 sm:p-6">
+          <div ref={ref} className="flex flex-wrap items-center justify-between gap-3">
+            <div className="inline-flex rounded-full border border-line bg-paper p-0.5">
+              {(['backward', 'forward'] as Dir[]).map((d) => (
+                <button
+                  key={d}
+                  onClick={() => switchDir(d)}
+                  className={cn(
+                    'relative flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-3.5 text-[13px] font-medium transition-colors',
+                    dir === d ? 'text-ink' : 'text-slate hover:text-ink',
+                  )}
+                >
+                  {dir === d && (
+                    <motion.span
+                      layoutId="trace-dir"
+                      transition={{ type: 'spring', stiffness: 400, damping: 34 }}
+                      className="absolute inset-0 rounded-full bg-white shadow-[0_1px_2px_rgba(0,0,0,.08)]"
+                    />
+                  )}
+                  {d === 'backward' ? <ArrowLeft className="relative size-3.5" /> : null}
+                  <span className="relative">{d === 'backward' ? 'Trace to supplier' : 'Trace to customer'}</span>
+                  {d === 'forward' ? <ArrowRight className="relative size-3.5" /> : null}
+                </button>
+              ))}
             </div>
-            <h2 className="mt-4 text-4xl font-semibold tracking-[-.045em] text-neutral-950 sm:text-5xl">
-              Every batch. Every component. Every result.
-            </h2>
-            <p className="mt-5 max-w-lg text-[16px] leading-7 text-neutral-600">
-              Follow material genealogy forward to the customer or backward to
-              the supplier in a few clicks.
-            </p>
-            <div className="mt-7 flex flex-wrap gap-2">
-              <span className="rounded-full bg-neutral-100 px-3 py-1.5 text-[11px] font-medium text-neutral-600">
-                Lots
-              </span>
-              <span className="rounded-full bg-neutral-100 px-3 py-1.5 text-[11px] font-medium text-neutral-600">
-                Serials
-              </span>
-              <span className="rounded-full bg-neutral-100 px-3 py-1.5 text-[11px] font-medium text-neutral-600">
-                QC
-              </span>
-              <span className="rounded-full bg-neutral-100 px-3 py-1.5 text-[11px] font-medium text-neutral-600">
-                Quarantine
-              </span>
-              <span className="rounded-full bg-neutral-100 px-3 py-1.5 text-[11px] font-medium text-neutral-600">
-                CAPA
-              </span>
+            <div className="flex flex-wrap gap-1.5">
+              {TAGS.map((t) => (
+                <span key={t} className="rounded-md border border-line px-2 py-0.5 text-[11px] font-medium text-slate">
+                  {t}
+                </span>
+              ))}
             </div>
           </div>
-          <div className="relative rounded-[28px] border border-neutral-200 bg-white p-6 shadow-card sm:p-9">
-            <div className="absolute left-1/2 top-10 bottom-10 w-px -translate-x-1/2 bg-neutral-200"></div>
-            <div className="relative space-y-4">
-              <div className="mx-auto max-w-xs rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-                <div className="text-[10px] uppercase tracking-[.12em] text-neutral-400">
-                  Supplier lot
-                </div>
-                <div className="mt-1 text-sm font-semibold text-neutral-900">LOT-SS-2048</div>
-                <div className="mt-1 text-[10px] text-neutral-500">
-                  Atlas Steel · 218 pcs
-                </div>
-              </div>
-              <div className="mx-auto grid h-7 w-7 place-items-center rounded-full border border-neutral-200 bg-white shadow-xs">
-                <ArrowDown className="h-3.5 w-3.5 text-neutral-400" />
-              </div>
-              <div className="mx-auto max-w-xs rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
-                <div className="text-[10px] uppercase tracking-[.12em] text-emerald-700">
-                  Production order
-                </div>
-                <div className="mt-1 text-sm font-semibold text-emerald-950">OF-2026-00942</div>
-                <div className="mt-1 text-[10px] text-neutral-600">
-                  Table T-420 · 500 units
-                </div>
-              </div>
-              <div className="mx-auto grid h-7 w-7 place-items-center rounded-full border border-neutral-200 bg-white shadow-xs">
-                <ArrowDown className="h-3.5 w-3.5 text-neutral-400" />
-              </div>
-              <div className="mx-auto max-w-xs rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-                <div className="text-[10px] uppercase tracking-[.12em] text-neutral-400">
-                  Finished batch
-                </div>
-                <div className="mt-1 text-sm font-semibold text-neutral-900">LOT-T420-82</div>
-                <div className="mt-1 text-[10px] text-neutral-500">
-                  QC passed · 496 released
-                </div>
-              </div>
-              <div className="mx-auto grid h-7 w-7 place-items-center rounded-full border border-neutral-200 bg-white shadow-xs">
-                <ArrowDown className="h-3.5 w-3.5 text-neutral-400" />
-              </div>
-              <div className="mx-auto max-w-xs rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-[10px] uppercase tracking-[.12em] text-neutral-400">
-                      Customer delivery
+
+          <div className="mt-6 grid gap-2 md:grid-cols-4 md:gap-0">
+            {NODES.map((n, i) => {
+              const on = lit(i)
+              const isOrigin = order[0] === i
+              return (
+                <div key={n.id} className="flex items-center">
+                  <motion.div
+                    animate={{ opacity: on ? 1 : 0.45 }}
+                    transition={{ duration: 0.4 }}
+                    className={cn(
+                      'min-w-0 flex-1 rounded-xl border p-4 transition-colors duration-500',
+                      on ? 'border-ink/15 bg-white shadow-[0_1px_3px_rgba(0,0,0,.06)]' : 'border-line bg-paper',
+                    )}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-medium text-slate">{n.kind}</span>
+                      {isOrigin && (
+                        <span className="rounded bg-ink px-1.5 py-0.5 text-[10px] font-medium text-white">Start</span>
+                      )}
                     </div>
-                    <div className="mt-1 text-sm font-semibold text-neutral-900">DN-2026-4418</div>
-                  </div>
-                  <span className="rounded-full bg-emerald-50 px-2 py-1 text-[9px] font-semibold text-emerald-700">
-                    Delivered
-                  </span>
+                    <div className="mt-3 truncate font-mono text-[13px] font-medium">{n.id}</div>
+                    <div className="mt-1 truncate text-[12px] text-slate">{n.meta}</div>
+                  </motion.div>
+                  {i < NODES.length - 1 && (
+                    <div className="relative mx-2 hidden h-px w-6 shrink-0 bg-line md:block" aria-hidden>
+                      <motion.div
+                        animate={{ scaleX: lit(i) && lit(i + 1) ? 1 : 0 }}
+                        transition={{ duration: 0.4, ease: EASE }}
+                        className={cn('absolute inset-0 bg-flow-teal', dir === 'forward' ? 'origin-left' : 'origin-right')}
+                      />
+                    </div>
+                  )}
                 </div>
-              </div>
-            </div>
+              )
+            })}
           </div>
-        </div>
-      </div>
-    </section>
+
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-paper px-4 py-3 text-[12px]">
+            <span className="text-slate">
+              {dir === 'forward' ? 'Recall scope' : 'Root cause'} ·{' '}
+              <span className="font-medium text-ink">
+                {dir === 'forward' ? '3 deliveries · 2 customers' : 'Supplier lot LOT-SS-2048 · received 02 Oct'}
+              </span>
+            </span>
+            <span className="text-ink/35">Sample data</span>
+          </div>
+        </Card>
+      </Reveal>
+    </Section>
   )
 }
